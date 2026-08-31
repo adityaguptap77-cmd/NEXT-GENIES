@@ -61,7 +61,7 @@ function Contact() {
               className="form-input"
               id="email"
               name="email"
-              placeholder="hello@yourbrand.com"
+              placeholder="you@gmail.com"
               type="email"
               required
             />
@@ -110,14 +110,14 @@ function Contact() {
               <span>
                 <span className="wa-label">Chat on WhatsApp</span>
                 <span className="wa-sub">
-                  +91 98XXX XXXXX · Typically replies in minutes
+                  +91  99108 80760 · Typically replies in minutes
                 </span>
               </span>
             </a>
 
             <div className="contact-block">
               <div className="contact-block-title">Email</div>
-              <div className="contact-block-val">hello@nextgenies.co</div>
+              <div className="contact-block-val">nextgenies.team@gmail.com</div>
             </div>
 
             <div className="contact-block">
