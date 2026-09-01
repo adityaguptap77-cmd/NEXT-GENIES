@@ -12,6 +12,10 @@ const requiredDatabaseVariables = [
   "DB_USER",
   "DB_PASSWORD",
 ];
+console.log("DB_HOST =", process.env.DB_HOST);
+console.log("DB_NAME =", process.env.DB_NAME);
+console.log("DB_USER =", process.env.DB_USER);
+console.log("DB_PASSWORD LENGTH =", process.env.DB_PASSWORD?.length);
 
 // MySQL Pool
 const pool = mysql.createPool({
