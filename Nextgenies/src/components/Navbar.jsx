@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 function Navbar() {
   const location = useLocation();
 
   return (
     <nav className="nav">
-      <div className="nav-logo">NextGenies</div>
+      <div className="nav-logo"><img src={logo} alt="NextGenies Logo" /></div>
 
       <div className="nav-links">
         <Link
