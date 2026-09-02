@@ -66,6 +66,18 @@ function Contact() {
               required
             />
 
+            <label className="form-label" htmlFor="phone">
+              Phone Number
+            </label>
+            <input
+              className="form-input"
+              id="phone"
+              name="phone"
+              placeholder="+91 98XXX XXXXX"
+              type="tel"
+              required
+            />
+
             <label className="form-label" htmlFor="service">
               What Are You Looking For?
             </label>
@@ -114,6 +126,11 @@ function Contact() {
                 </span>
               </span>
             </a>
+
+            <div className="contact-block">
+              <div className="contact-block-title">Phone</div>
+              <div className="contact-block-val">+91 99108 80760</div>
+            </div>
 
             <div className="contact-block">
               <div className="contact-block-title">Email</div>
