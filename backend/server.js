@@ -38,7 +38,11 @@ const allowedOrigins = [
 ];
 
 const emailFrom = process.env.EMAIL_FROM || process.env.SMTP_USER;
-const emailTo = process.env.EMAIL_TO || process.env.SMTP_USER;
+const emailRecipients = [
+  process.env.EMAIL_TO,
+  process.env.EMAIL_TO2,
+  process.env.EMAIL_TO3,
+].filter(Boolean);
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -51,7 +55,12 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendContactEmails({ fullName, email, phone, service, message }) {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS || !emailTo) {
+  if (
+    !process.env.SMTP_HOST ||
+    !process.env.SMTP_USER ||
+    !process.env.SMTP_PASS ||
+    !emailRecipients.length
+  ) {
     throw new Error(
       "Email configuration is missing. Please configure SMTP_HOST, SMTP_USER, SMTP_PASS, and EMAIL_TO."
     );
@@ -96,7 +105,7 @@ async function sendContactEmails({ fullName, email, phone, service, message }) {
 
   await transporter.sendMail({
     from: emailFrom,
-    to: emailTo,
+    to: emailRecipients,
     subject: `New inquiry from ${fullName}`,
     html: adminHtml,
   });
