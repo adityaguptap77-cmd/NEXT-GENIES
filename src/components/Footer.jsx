@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Footer() {
   return (
     <footer className="footer">
@@ -33,35 +35,57 @@ function Footer() {
         <div>
           <div className="footer-col-title">Pages</div>
           <div className="footer-links">
-            <a href="/">Home</a>
-            <a href="/services">Services</a>
-            <a href="/about">About</a>
-            <a href="/contact">Contact</a>
+            <Link to="/">Home</Link>
+            <Link to="/services">Services</Link>
+            <Link to="/about">About</Link>
+            <Link to="/contact">Contact</Link>
           </div>
         </div>
 
         <div>
           <div className="footer-col-title">Services</div>
           <div className="footer-links">
-            <a href="/services">Content Creation</a>
-            <a href="/services">Website Development</a>
-            <a href="/services">Social Media Mgmt</a>
-            <a href="/services">Branding</a>
+            <Link to="/services">Content Creation</Link>
+            <Link to="/services">Website Development</Link>
+            <Link to="/services">Social Media Mgmt</Link>
+            <Link to="/services">Branding</Link>
+          </div>
+        </div>
+
+        <div>
+          <div className="column sitemap">
+            <h4>Site Map</h4>
+            <ul>
+              <li><Link to="/">Home</Link></li>
+              <li><Link to="/about">About</Link></li>
+              <li><Link to="/services">Services</Link></li>
+              <li><Link to="/contact">Contact</Link></li>
+              <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+              <li><Link to="/terms-and-conditions">Terms &amp; Conditions</Link></li>
+              <li><Link to="/cookie-policy">Cookie Policy</Link></li>
+              <li><Link to="/disclaimer">Disclaimer</Link></li>
+            </ul>
+          </div>
+          <div className="footer-links">
+            <Link to="/privacy-policy">Privacy Policy</Link>
+            <Link to="/terms-and-conditions">Terms &amp; Conditions</Link>
+            <Link to="/cookie-policy">Cookie Policy</Link>
+            <Link to="/disclaimer">Disclaimer</Link>
           </div>
         </div>
 
         <div>
           <div className="footer-col-title">Contact</div>
-          <div className="footer-contact-item">hello@nextgenies.co</div>
-          <div className="footer-contact-item">+91 98XXX XXXXX</div>
-          <div className="footer-contact-item">India - Remote-First</div>
-          <div className="footer-contact-item">Mon - Sat , 9AM - 6PM</div>
+          <div className="footer-contact-item">nextgenies.team@gmail.com</div>
+          <div className="footer-contact-item">+91 99108 80760</div>
+          <div className="footer-contact-item">India &mdash; Remote-First</div>
+          <div className="footer-contact-item">Mon &ndash; Sat, 10AM &ndash; 8PM IST</div>
         </div>
       </div>
 
       <div className="footer-bottom">
         <div className="footer-copy">
-          &copy; 2025 NextGenies. All rights reserved.
+          &copy; {new Date().getFullYear()} NextGenies. All rights reserved.
         </div>
 
         <div className="footer-badge">

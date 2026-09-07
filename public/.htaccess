@@ -1,11 +1,17 @@
-RewriteEngine On
-RewriteBase /
+# Safe MultiViews handling (avoid 500/503 on shared hosts)
+<IfModule mod_negotiation.c>
+  Options -MultiViews
+</IfModule>
 
-# Serve the app for direct route access
-RewriteRule ^index\.html$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.html [L]
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
 
-# Optional: keep clean URLs working on shared hosting
-Options -MultiViews
+# Fallback in case mod_rewrite fails or matches an unhandled path
+ErrorDocument 404 /index.html
+

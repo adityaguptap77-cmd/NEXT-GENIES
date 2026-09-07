@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import SEO from "../components/SEO";
 
 function About() {
   const stats = [
@@ -11,6 +13,11 @@ function About() {
 
   return (
     <>
+      <SEO
+        title="About NextGenies — Built by Builders, for Bold Brands"
+        description="Learn how NextGenies combines creative storytelling with performance data to engineer compound digital growth systems for founders and modern businesses."
+        canonicalPath="/about"
+      />
       <Navbar />
 
       <main className="about-page">
@@ -100,7 +107,7 @@ function About() {
         <section className="about-work-cta">
           <h2>Want to Work Together?</h2>
           <p>We&apos;re selective about who we work with &mdash; because we&apos;re invested in your growth.</p>
-          <a className="btn-primary" href="/contact">Let&apos;s Talk</a>
+          <Link className="btn-primary" to="/contact">Let&apos;s Talk</Link>
         </section>
       </main>
 

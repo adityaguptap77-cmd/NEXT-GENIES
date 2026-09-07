@@ -1,9 +1,15 @@
-import "dotenv/config";
+
+import dotenv from "dotenv";
 import cors from "cors";
 import express from "express";
 import mysql from "mysql2/promise";
 import nodemailer from "nodemailer";
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -16,7 +22,7 @@ const requiredDatabaseVariables = [
 console.log("DB_HOST =", process.env.DB_HOST);
 console.log("DB_NAME =", process.env.DB_NAME);
 console.log("DB_USER =", process.env.DB_USER);
-console.log("DB_PASSWORD LENGTH =", process.env.DB_PASSWORD);
+console.log("DB_PASSWORD =", process.env.DB_PASSWORD ? "[CONFIGURED]" : "[MISSING]");
 
 // MySQL Pool
 const pool = mysql.createPool({
@@ -173,12 +179,20 @@ app.post("/api/contacts", async (req, res, next) => {
       message: "Message received",
       id: result.insertId,
     });
+// Serve static SPA files
+app.use(express.static(path.join(__dirname, "..", "dist")));
+
+// SPA fallback for non‑API routes
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "dist", "index.html"));
+});
   } catch (error) {
     next(error);
   }
 });
 
 // Error Handler
+// eslint-disable-next-line no-unused-vars
 app.use((error, _req, res, _next) => {
   console.error("SERVER ERROR:", error);
 

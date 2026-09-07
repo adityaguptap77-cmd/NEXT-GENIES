@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import SEO from "../components/SEO";
 
 function Services() {
   const services = [
@@ -67,6 +69,11 @@ function Services() {
 
   return (
     <>
+      <SEO
+        title="Our Core Digital Growth Services"
+        description="Explore NextGenies' full-service digital solutions: strategic content creation, custom website development, end-to-end social media management, and branding."
+        canonicalPath="/services"
+      />
       <Navbar />
 
       <main className="services-page">
@@ -116,7 +123,7 @@ function Services() {
           <div className="section-label">Let's Build Together</div>
           <h2>Ready to Scale Your Brand?</h2>
           <p>Tell us what you are building, and we will shape the right plan.</p>
-          <a className="btn-primary" href="/contact">Get Started</a>
+          <Link className="btn-primary" to="/contact">Get Started</Link>
         </section>
       </main>
 
