@@ -46,6 +46,14 @@
     z-index: 100;
   }
 
+  .nav-logo img {
+    width: 100%;
+    height: 36px;
+    object-fit: cover;
+    object-position: center 42%;
+    transform: none;
+  }
+
   .nav-logo {
     display: flex;
     align-items: center;
@@ -1853,6 +1861,230 @@
 
     .wa-label {
       font-size: 16px;
+    }
+  }
+
+  /* Final layout pass: establish a quieter grid and predictable mobile sizing. */
+  :root {
+    --content-width: 1180px;
+    --page-gutter: clamp(18px, 4vw, 48px);
+    --shadow-soft: 0 24px 70px rgba(2, 8, 23, .22);
+  }
+
+  html {
+    background: var(--bg);
+  }
+
+  body {
+    min-width: 320px;
+    overflow-x: hidden;
+    line-height: 1.55;
+  }
+
+  .nav {
+    width: min(calc(100% - 32px), var(--content-width));
+    margin: 16px auto 0;
+    padding: 10px 14px;
+    border: 1px solid rgba(148, 163, 184, .16);
+    border-radius: 18px;
+    box-shadow: 0 12px 35px rgba(2, 8, 23, .18);
+    backdrop-filter: blur(18px);
+  }
+
+  .nav-links {
+    align-items: center;
+    gap: 4px;
+  }
+
+  .nav-links a {
+    padding: 8px 12px;
+    border-radius: 9px;
+  }
+
+  .nav-links a.active,
+  .nav-links a:hover {
+    background: rgba(59, 130, 246, .12);
+  }
+
+  .nav-cta {
+    min-height: 40px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero {
+    width: min(100%, var(--content-width));
+    min-height: min(720px, calc(100vh - 90px));
+    margin: 0 auto;
+    padding: clamp(72px, 10vw, 132px) var(--page-gutter) 80px;
+    gap: clamp(28px, 6vw, 88px);
+  }
+
+  .hero-content {
+    max-width: 650px;
+    z-index: 1;
+  }
+
+  .hero h1 {
+    max-width: 11ch;
+    font-size: clamp(2.8rem, 6vw, 5.6rem);
+    line-height: .98;
+    letter-spacing: -.03em;
+  }
+
+  .hero p {
+    max-width: 48ch;
+    margin-top: 22px;
+    font-size: clamp(.98rem, 1.5vw, 1.15rem);
+  }
+
+  .hero-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .hero-btns a,
+  .btn-primary,
+  .btn-secondary {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 18px;
+  }
+
+  .home-cta-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 24px;
+  }
+
+  .home-link {
+    white-space: nowrap;
+  }
+
+  .scroll-hint {
+    margin-top: 34px;
+  }
+
+  .hero-visual {
+    flex: 0 1 420px;
+    min-width: 260px;
+  }
+
+  .contact-page,
+  .legal-page,
+  .about-page,
+  .services-page {
+    width: min(calc(100% - (var(--page-gutter) * 2)), var(--content-width));
+    margin-inline: auto;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(280px, .75fr);
+    gap: clamp(24px, 5vw, 72px);
+    align-items: start;
+  }
+
+  .contact-form-card,
+  .contact-help-card,
+  .mission-card,
+  .service-detail-card {
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .form-input {
+    min-height: 48px;
+    border-radius: 10px;
+  }
+
+  .form-textarea {
+    min-height: 140px;
+    resize: vertical;
+  }
+
+  .form-submit {
+    min-height: 48px;
+    border-radius: 10px;
+  }
+
+  .breadcrumbs {
+    width: min(calc(100% - (var(--page-gutter) * 2)), var(--content-width));
+    margin: 18px auto 0;
+  }
+
+  @media (max-width: 760px) {
+    .nav {
+      width: calc(100% - 24px);
+      margin-top: 12px;
+      padding: 8px 10px;
+    }
+
+    .nav-logo {
+      width: 112px;
+    }
+
+    .nav-links {
+      width: 100%;
+      top: calc(100% + 8px);
+      border-radius: 14px;
+    }
+
+    .nav-cta {
+      min-height: 38px;
+      padding-inline: 12px;
+      font-size: 12px;
+    }
+
+    .hero {
+      min-height: auto;
+      display: block;
+      padding-top: 74px;
+      padding-bottom: 56px;
+    }
+
+    .hero h1 {
+      max-width: 12ch;
+      font-size: clamp(2.65rem, 13vw, 4.2rem);
+    }
+
+    .hero-btns a {
+      flex: 1 1 145px;
+    }
+
+    .hero-visual {
+      min-height: 290px;
+      margin-top: 28px;
+    }
+
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .nav-cta {
+      display: none;
+    }
+
+    .hero {
+      padding-inline: 18px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.45rem, 13vw, 3.35rem);
+    }
+
+    .hero-btns a {
+      width: 100%;
     }
   }
 
