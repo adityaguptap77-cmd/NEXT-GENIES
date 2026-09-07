@@ -2,6 +2,8 @@
 import dotenv from "dotenv";
 import cors from "cors";
 import express from "express";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import mysql from "mysql2/promise";
 import nodemailer from "nodemailer";
 import path from "path";
@@ -12,6 +14,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 const app = express();
 const port = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === "production";
 
 const requiredDatabaseVariables = [
   "DB_HOST",
@@ -37,11 +40,11 @@ const pool = mysql.createPool({
 });
 
 // CORS
-const allowedOrigins = [
-  "https://nextgenies.com",
-  "https://www.nextgenies.com",
-  "http://localhost:5173",
-];
+const allowedOrigins = (process.env.FRONTEND_ORIGINS ||
+  "https://nextgenies.com,https://www.nextgenies.com,http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const emailFrom = process.env.EMAIL_FROM || process.env.SMTP_USER;
 const emailRecipients = [
@@ -72,17 +75,36 @@ async function sendContactEmails({ fullName, email, phone, service, message }) {
     );
   }
 
+  const escapeHtml = (value) =>
+    String(value).replace(
+      /[&<>"']/g,
+      (character) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[character],
+    );
+
+  const safeName = escapeHtml(fullName);
+  const safeEmail = escapeHtml(email);
+  const safePhone = escapeHtml(phone);
+  const safeService = escapeHtml(service);
+  const safeMessage = escapeHtml(message).replace(/\r?\n/g, "<br />");
+
   const userSubject = `Thanks for reaching out, ${fullName}!`;
   const userHtml = `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
-      <h2 style="color: #111827;">Hi ${fullName},</h2>
+      <h2 style="color: #111827;">Hi ${safeName},</h2>
       <p>Thanks for reaching out to NextGenies.</p>
       <p>We have received your message and will connect with you shortly.</p>
       <p>Here is a quick summary of your request:</p>
       <ul>
-        <li><strong>Email:</strong> ${email}</li>
-        <li><strong>Phone:</strong> ${phone}</li>
-        <li><strong>Service:</strong> ${service}</li>
+        <li><strong>Email:</strong> ${safeEmail}</li>
+        <li><strong>Phone:</strong> ${safePhone}</li>
+        <li><strong>Service:</strong> ${safeService}</li>
       </ul>
       <p>We’ll get back to you soon.</p>
       <p>Best regards,<br />NextGenies Team</p>
@@ -92,12 +114,12 @@ async function sendContactEmails({ fullName, email, phone, service, message }) {
   const adminHtml = `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
       <h2 style="color: #111827;">New contact form submission</h2>
-      <p><strong>Name:</strong> ${fullName}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone}</p>
-      <p><strong>Service:</strong> ${service}</p>
+      <p><strong>Name:</strong> ${safeName}</p>
+      <p><strong>Email:</strong> ${safeEmail}</p>
+      <p><strong>Phone:</strong> ${safePhone}</p>
+      <p><strong>Service:</strong> ${safeService}</p>
       <p><strong>Message:</strong></p>
-      <p>${message.replace(/\n/g, "<br />")}</p>
+      <p>${safeMessage}</p>
     </div>
   `;
 
@@ -117,6 +139,8 @@ async function sendContactEmails({ fullName, email, phone, service, message }) {
   });
 }
 
+app.use(helmet());
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -126,12 +150,20 @@ app.use(
 
       callback(new Error(`CORS blocked for origin: ${origin}`));
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    credentials: false,
   })
 );
 
 app.use(express.json({ limit: "10kb" }));
+
+const contactRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { message: "Too many contact requests. Please try again later." },
+});
 
 // Health Check
 app.get("/api/health", async (_req, res) => {
@@ -142,27 +174,41 @@ app.get("/api/health", async (_req, res) => {
       status: "ok",
       database: "connected",
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({
       status: "error",
       database: "disconnected",
-      message: err.message,
+      message: "Database health check failed.",
     });
   }
 });
 
 // Contact Form
-app.post("/api/contacts", async (req, res, next) => {
+app.post("/api/contacts", contactRateLimit, async (req, res, next) => {
   try {
-    const fullName = req.body?.fullName?.trim();
-    const email = req.body?.email?.trim().toLowerCase();
-    const phone = req.body?.phone?.trim();
-    const service = req.body?.service?.trim();
-    const message = req.body?.message?.trim();
+    const readField = (value) => (typeof value === "string" ? value.trim() : "");
+    const fullName = readField(req.body?.fullName);
+    const email = readField(req.body?.email).toLowerCase();
+    const phone = readField(req.body?.phone);
+    const service = readField(req.body?.service);
+    const message = readField(req.body?.message);
 
-    if (!fullName || !email || !phone || !service || !message) {
+    if (
+      !fullName ||
+      !email ||
+      !phone ||
+      !service ||
+      !message ||
+      fullName.length > 100 ||
+      email.length > 255 ||
+      phone.length > 30 ||
+      service.length > 100 ||
+      message.length > 5000 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+      /[\r\n]/.test(`${fullName}${email}${phone}${service}`)
+    ) {
       return res.status(400).json({
-        message: "All fields are required.",
+        message: "Please provide valid contact details and a message.",
       });
     }
 
@@ -197,7 +243,7 @@ app.use((error, _req, res, _next) => {
   console.error("SERVER ERROR:", error);
 
   res.status(500).json({
-    message: error.message || "Something went wrong",
+    message: isProduction ? "Something went wrong." : error.message || "Something went wrong",
   });
 });
 

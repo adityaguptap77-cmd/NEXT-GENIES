@@ -6,6 +6,7 @@ import SEO from "../components/SEO";
 function Contact() {
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const apiBaseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -16,7 +17,7 @@ function Contact() {
     setStatus({ type: "", message: "" });
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/contacts`, {
+      const response = await fetch(`${apiBaseUrl}/api/contacts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(Object.fromEntries(formData)),

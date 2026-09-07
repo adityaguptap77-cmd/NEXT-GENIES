@@ -13,9 +13,14 @@ function Breadcrumbs() {
           pathAccum.push(c);
           const to = "/" + pathAccum.join("/");
           const name = c.charAt(0).toUpperCase() + c.slice(1);
+          const isCurrent = i === crumbs.length - 1;
           return (
             <li key={i}>
-              <Link to={to}>{name}</Link>
+              {isCurrent ? (
+                <span aria-current="page">{name}</span>
+              ) : (
+                <Link to={to}>{name}</Link>
+              )}
             </li>
           );
         })}

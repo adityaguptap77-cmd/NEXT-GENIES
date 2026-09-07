@@ -19,6 +19,7 @@ function Navbar() {
           className={location.pathname === "/" ? "active" : ""}
           to="/"
           onClick={closeMenu}
+          aria-current={location.pathname === "/" ? "page" : undefined}
         >
           Home
         </Link>
@@ -27,6 +28,7 @@ function Navbar() {
           className={location.pathname === "/services" ? "active" : ""}
           to="/services"
           onClick={closeMenu}
+          aria-current={location.pathname === "/services" ? "page" : undefined}
         >
           Services
         </Link>
@@ -35,6 +37,7 @@ function Navbar() {
           className={location.pathname === "/about" ? "active" : ""}
           to="/about"
           onClick={closeMenu}
+          aria-current={location.pathname === "/about" ? "page" : undefined}
         >
           About
         </Link>
@@ -43,6 +46,7 @@ function Navbar() {
           className={location.pathname === "/contact" ? "active" : ""}
           to="/contact"
           onClick={closeMenu}
+          aria-current={location.pathname === "/contact" ? "page" : undefined}
         >
           Contact
         </Link>

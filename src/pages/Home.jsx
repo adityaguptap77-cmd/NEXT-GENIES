@@ -53,10 +53,6 @@ function Home() {
   Scroll to explore
 </div>
 
-            <div className="scroll-hint">
-              <span className="scroll-line" />
-              Scroll to explore
-            </div>
           </div>
 
           <div className="hero-visual" aria-hidden="true">
