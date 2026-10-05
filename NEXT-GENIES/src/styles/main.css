@@ -1,3 +1,5 @@
+@import "./questionnaire.css";
+
  * {
     box-sizing: border-box;
     margin: 0;
@@ -5818,7 +5820,6 @@ body {
 }
 
 .breadcrumbs,
-.nav,
 .home-page > .hero,
 .trust,
 .home-page > .section,
@@ -5842,7 +5843,6 @@ body {
   padding-inline: clamp(18px, 3.5vw, 52px);
 }
 
-.nav,
 .trust,
 .home-page > .hero,
 .home-page > .section,
@@ -5868,210 +5868,103 @@ body {
   fill: #fff;
 }
 
-/* Floating glass navbar with soft, beveled depth */
-.nav {
-  position: sticky;
-  top: 14px;
-  z-index: 100;
-  width: min(1160px, calc(100% - 48px));
-  max-width: 1160px;
-  min-height: 76px;
-  margin: 14px auto 18px;
-  padding: 10px 18px;
-  border: 1px solid rgba(192, 215, 250, .2);
-  border-radius: 24px;
-  background: linear-gradient(110deg, rgba(31, 45, 68, .62), rgba(12, 20, 34, .58));
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .3),
-    0 5px 16px rgba(86, 125, 183, .08),
-    inset 0 1px 0 rgba(255, 255, 255, .16),
-    inset 0 -1px 0 rgba(0, 0, 0, .22);
-  backdrop-filter: blur(24px) saturate(155%);
-  -webkit-backdrop-filter: blur(24px) saturate(155%);
-  transition: border-color .25s ease, box-shadow .25s ease;
-}
-
-.nav::before {
-  border-radius: inherit;
-  background: linear-gradient(105deg, rgba(169, 203, 255, .1), transparent 42%, rgba(255, 255, 255, .025));
-  opacity: 1;
-}
-
-.nav:hover {
-  border-color: rgba(192, 215, 250, .3);
-  box-shadow:
-    0 21px 48px rgba(0, 0, 0, .34),
-    0 6px 18px rgba(86, 125, 183, .11),
-    inset 0 1px 0 rgba(255, 255, 255, .19),
-    inset 0 -1px 0 rgba(0, 0, 0, .24);
-}
-
-.nav-logo {
-  position: relative;
-  z-index: 1;
-  width: auto;
-  height: auto;
-  gap: 10px;
-  overflow: visible;
-}
-
-.nav-brand-name {
-  color: #f4f7ff;
-  font-size: 16px;
-  font-weight: 750;
-  letter-spacing: -.45px;
-  white-space: nowrap;
-}
-
-.brand-mark {
-  border: 1px solid rgba(191, 219, 254, .3);
-  border-radius: 12px;
-  background: linear-gradient(145deg, #4c8bff, #2455bc);
-  box-shadow: 0 5px 16px rgba(45, 112, 239, .25), inset 0 1px 0 rgba(255, 255, 255, .3);
-}
-
-.nav-links {
-  position: static;
-  gap: 4px;
-  padding: 5px;
-  border: 1px solid rgba(192, 215, 250, .11);
-  border-radius: 15px;
-  background: rgba(5, 12, 24, .23);
-  transform: none;
-}
-
-.nav-links a {
-  padding: 10px 15px;
-  border: 1px solid transparent;
-  border-radius: 11px;
-  color: rgba(228, 236, 249, .8);
-  font-size: 13px;
-  font-weight: 600;
-  transition: color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
-}
-
-.nav-links a:hover,
-.nav-links a.active {
-  border-color: rgba(147, 197, 253, .17);
-  background: rgba(96, 165, 250, .14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 4px 12px rgba(2, 8, 23, .14);
-  color: #fff;
-}
-
-.nav-cta {
-  position: relative;
-  z-index: 1;
-  min-width: 138px;
-  min-height: 44px;
-  padding: 0 17px;
-  border: 1px solid rgba(147, 197, 253, .28);
-  border-radius: 999px;
-  background: linear-gradient(135deg, #2864d6, #3478f6 66%, #5592ff);
-  box-shadow: 0 7px 16px rgba(15, 76, 181, .22), inset 0 1px 0 rgba(255, 255, 255, .24), inset 0 -1px 0 rgba(30, 64, 175, .2);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
-}
-
-.nav-cta:hover {
-  background: linear-gradient(135deg, #3475ee, #4b8df8 66%, #74b0ff);
-  box-shadow: 0 10px 22px rgba(37, 99, 235, .3), inset 0 1px 0 rgba(255, 255, 255, .28);
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-.nav-cta:active {
-  transform: translateY(0) scale(.98);
-}
-
-.nav-menu-toggle {
-  border: 1px solid rgba(192, 215, 250, .18);
-  border-radius: 12px;
-  background: rgba(148, 190, 255, .07);
-  color: #e8edf5;
-}
-
-.nav-menu-toggle:hover {
-  border-color: rgba(147, 197, 253, .3);
-  background: rgba(96, 165, 250, .13);
-}
-
 .nav a:focus-visible,
 .nav-menu-toggle:focus-visible {
   outline: 2px solid #8ab8ff;
   outline-offset: 3px;
 }
 
+/* ==========================================================================
+   NAVBAR SHRINKS ON SCROLL
+   ========================================================================== */
+.nav-wrapper {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+  pointer-events: none;
+  padding: 0;
+  margin: 0;
+  transition: padding-top 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.nav-wrapper.is-scrolled {
+  padding-top: 12px;
+}
+
+.nav-wrapper .nav {
+  pointer-events: auto;
+  position: relative !important;
+  top: auto !important;
+  min-height: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px clamp(20px, 4vw, 48px) !important;
+  background: rgba(11, 19, 36, 0.95) !important;
+  border-bottom: 1px solid rgba(148, 190, 255, 0.12) !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  box-sizing: border-box !important;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-radius 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.35s ease,
+              border-color 0.35s ease,
+              box-shadow 0.35s ease !important;
+}
+
+/* Floating navbar state after scrolling. */
+.nav-wrapper.is-scrolled .nav,
+.nav-wrapper .nav.nav-scrolled {
+  width: min(calc(100% - 48px), 1220px) !important;
+  max-width: 1220px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 10px clamp(16px, 2.5vw, 28px) !important;
+  border-radius: 999px !important;
+  background: rgba(11, 19, 36, 0.88) !important;
+  border: 1px solid rgba(148, 190, 255, 0.24) !important;
+  box-shadow: 0 16px 36px rgba(2, 8, 23, 0.45), 0 0 20px rgba(59, 130, 246, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+}
+
 @media (max-width: 800px) {
-  .nav {
-    width: calc(100% - 24px);
-    min-height: 64px;
-    margin-top: 10px;
-    padding: 8px 13px;
-    border-radius: 20px;
+  .nav-wrapper.is-scrolled {
+    padding-top: 10px;
   }
 
-  .nav-links {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    left: 0;
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-    padding: 8px;
-    border: 1px solid rgba(192, 215, 250, .17);
-    border-radius: 18px;
-    background: rgba(15, 26, 47, .78);
-    box-shadow: 0 14px 34px rgba(2, 8, 23, .3), inset 0 1px 0 rgba(255, 255, 255, .09);
-    backdrop-filter: blur(22px) saturate(150%);
-    -webkit-backdrop-filter: blur(22px) saturate(150%);
-    transform: none;
-  }
-
-  .menu-open .nav-links {
-    display: flex;
-  }
-
-  .nav-links a {
-    width: 100%;
-    padding: 12px 14px;
-  }
-
-  .nav-cta {
-    min-width: 116px;
-    min-height: 40px;
-    padding-inline: 13px;
-    font-size: 12px;
+  .nav-wrapper.is-scrolled .nav,
+  .nav-wrapper .nav.nav-scrolled {
+    width: calc(100% - 24px) !important;
+    border-radius: 20px !important;
+    padding: 9px 16px !important;
   }
 }
 
-@media (max-width: 420px) {
-  .nav {
-    width: calc(100% - 20px);
-    padding-inline: 10px;
+@media (max-width: 520px) {
+  .nav-wrapper.is-scrolled {
+    padding-top: 8px;
   }
 
-  .nav-logo {
-    gap: 7px;
-  }
-
-  .nav-brand-name {
-    font-size: 13px;
-  }
-
-  .nav-cta {
-    min-width: 0;
-    padding-inline: 10px;
-    font-size: 11px;
-  }
-
-  .nav-menu-toggle {
-    width: 36px;
-    height: 36px;
-    margin-left: 6px;
+  .nav-wrapper.is-scrolled .nav,
+  .nav-wrapper .nav.nav-scrolled {
+    width: calc(100% - 16px) !important;
+    border-radius: 18px !important;
+    padding: 8px 14px !important;
   }
 }
 
