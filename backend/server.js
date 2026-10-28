@@ -4,14 +4,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import nodemailer from "nodemailer";
 import multer from "multer";
-// Safe dynamic import for sharp (prevents 503 crash if native C++ bindings differ between Windows and Linux)
 let sharp = null;
-try {
-  const sharpModule = await import("sharp");
-  sharp = sharpModule.default || sharpModule;
-} catch (sharpError) {
-  console.warn("⚠️ [Server Notice] sharp image processing is not available or incompatible on this environment:", sharpError.message);
-}
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
@@ -346,7 +339,12 @@ function removeBlogImage(imageUrl) {
  */
 async function adjustBlogImage(buffer) {
   if (!sharp) {
-    return buffer; // Pass-through original buffer if sharp is not available
+    try {
+      const sharpModule = await import("sharp");
+      sharp = sharpModule.default || sharpModule;
+    } catch {
+      return buffer; // Pass-through original buffer if sharp is not available
+    }
   }
   const metadata = await sharp(buffer).metadata();
   const TARGET_WIDTH = 1200;
@@ -398,9 +396,9 @@ async function adjustBlogImage(buffer) {
 // ============================================================================
 // HEALTH CHECK
 // ============================================================================
-app.get("/api/ping", (_req, res) => res.json({ status: "ok", message: "pong", time: new Date().toISOString() }));
+app.get(["/api/ping", "/ping"], (_req, res) => res.json({ status: "ok", message: "pong", time: new Date().toISOString() }));
 
-app.get("/api/health", async (_req, res) => {
+app.get(["/api/health", "/health"], async (_req, res) => {
   try {
     const health = await db.healthCheck();
     res.json({
@@ -419,7 +417,7 @@ app.get("/api/health", async (_req, res) => {
 // ============================================================================
 // CONTACT FORM SUBMISSION (CONNECT TO DATABASE)
 // ============================================================================
-app.post("/api/contacts", contactRateLimit, async (req, res, next) => {
+app.post(["/api/contacts", "/contacts"], contactRateLimit, async (req, res, next) => {
   console.log("\n=======================================================");
   console.log("📥 [Backend /api/contacts] Step 1: Received new contact submission");
   console.log("🌐 Origin:", req.headers.origin || "same-origin", "| Method: POST | IP:", req.ip);

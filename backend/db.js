@@ -3,12 +3,6 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import mysql from "mysql2/promise";
 let DatabaseSync = null;
-try {
-  const sqliteModule = await import("node:sqlite");
-  DatabaseSync = sqliteModule.DatabaseSync;
-} catch {
-  // node:sqlite is not supported on Node < 22.5; MySQL is used on Hostinger.
-}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -109,6 +103,14 @@ export async function initDatabase() {
   }
 
   const dbFilePath = path.join(dataDir, "nextgenies.db");
+  if (!DatabaseSync) {
+    try {
+      const sqliteModule = await import("node:sqlite");
+      DatabaseSync = sqliteModule.DatabaseSync;
+    } catch {
+      // node:sqlite is not supported in this Node version
+    }
+  }
   if (DatabaseSync) {
     sqliteDb = new DatabaseSync(dbFilePath);
   } else {
