@@ -210,7 +210,6 @@ export default function Contact() {
 
     // Step 3: Send to API
     console.log("🌐 [Contact Form] Step 3/4: Sending HTTP POST request to API...");
-    setSubmitStatus("Connecting to server & saving inquiry...");
     try {
       const response = await api.sendContact(payload);
       console.log("🎉 [Contact Form] Step 4/4: SUCCESS! Server responded with:", response);

@@ -4,7 +4,14 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import nodemailer from "nodemailer";
 import multer from "multer";
-import sharp from "sharp";
+// Safe dynamic import for sharp (prevents 503 crash if native C++ bindings differ between Windows and Linux)
+let sharp = null;
+try {
+  const sharpModule = await import("sharp");
+  sharp = sharpModule.default || sharpModule;
+} catch (sharpError) {
+  console.warn("⚠️ [Server Notice] sharp image processing is not available or incompatible on this environment:", sharpError.message);
+}
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
@@ -332,6 +339,9 @@ function removeBlogImage(imageUrl) {
  *   the entire original is visible and looks professional.
  */
 async function adjustBlogImage(buffer) {
+  if (!sharp) {
+    return buffer; // Pass-through original buffer if sharp is not available
+  }
   const metadata = await sharp(buffer).metadata();
   const TARGET_WIDTH = 1200;
   const TARGET_HEIGHT = 675; // Standard 16:9
