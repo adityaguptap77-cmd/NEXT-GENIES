@@ -62,24 +62,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.options("*", (req, res) => {
-  const origin = req.headers.origin || "*";
-  res.setHeader("Access-Control-Allow-Origin", origin);
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    req.headers["access-control-request-headers"] ||
-      "Content-Type, Authorization, X-Requested-With, Accept, Origin, *"
-  );
-  res.setHeader("Access-Control-Expose-Headers", "*");
-  res.setHeader("Access-Control-Max-Age", "86400");
-  if (req.headers.origin) {
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Vary", "Origin");
-  }
-  res.setHeader("Content-Length", "0");
-  res.status(200).end();
-});
 
 const emailFrom = process.env.EMAIL_FROM || process.env.SMTP_USER;
 const emailRecipients = [
