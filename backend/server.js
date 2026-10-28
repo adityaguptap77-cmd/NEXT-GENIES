@@ -19,17 +19,34 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 const app = express();
 const isProduction = process.env.NODE_ENV === "production";
 if (isProduction) app.set("trust proxy", 1);
-const port = isProduction ? 3000 : Number(process.env.PORT || 5000);
+const port = Number(process.env.PORT || (isProduction ? 3000 : 5000));
 
-const normalizeOrigin = (origin) => origin.trim().replace(/^['\"]|['\"]$/g, "").replace(/\/$/, "");
-const frontendOrigins = (process.env.FRONTEND_ORIGINS || process.env.FRONTEND_ORIGIN || "")
-  .split(",")
-  .map(normalizeOrigin)
-  .filter(Boolean);
-if (!frontendOrigins.length) {
-  frontendOrigins.push("https://nextgenies.com", "https://www.nextgenies.com");
-}
-frontendOrigins.unshift("https://nextgenies.com", "https://www.nextgenies.com");
+// ============================================================================
+// 100% UNRESTRICTED CORS — ALLOW ANY WEBPAGE, ZERO RESTRICTIONS
+// ============================================================================
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin, *");
+  res.setHeader("Access-Control-Expose-Headers", "*");
+  res.setHeader("Access-Control-Max-Age", "86400");
+
+  if (req.method === "OPTIONS") {
+    res.setHeader("Content-Length", "0");
+    return res.status(200).end();
+  }
+  next();
+});
+
+app.options("*", (_req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin, *");
+  res.setHeader("Access-Control-Expose-Headers", "*");
+  res.setHeader("Access-Control-Max-Age", "86400");
+  res.setHeader("Content-Length", "0");
+  res.status(200).end();
+});
 
 const emailFrom = process.env.EMAIL_FROM || process.env.SMTP_USER;
 const emailRecipients = [
@@ -129,44 +146,11 @@ async function sendContactEmails({ fullName, email, phone, service, message }) {
 app.use(
   helmet({
     contentSecurityPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
   }),
 );
 
-// Allow only configured frontend origins.
-app.use((req, res, next) => {
-  const requestOrigin = req.headers.origin;
-  const allowedOrigin = requestOrigin && frontendOrigins.includes(requestOrigin)
-    ? requestOrigin
-    : frontendOrigins[0];
-  {
-    res.header("Access-Control-Allow-Origin", allowedOrigin || "https://nextgenies.com");
-    res.header("Vary", "Origin");
-  }
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.path.startsWith("/api/")) res.set("Cache-Control", "no-store");
-  if (req.method === "OPTIONS") {
-    res.set("Cache-Control", "no-store");
-    return res.status(200).end();
-  }
-  next();
-});
-
-app.options("/{*splat}", (_req, res) => {
-  const requestOrigin = _req.headers.origin;
-  const allowedOrigin = requestOrigin && frontendOrigins.includes(requestOrigin)
-    ? requestOrigin
-    : frontendOrigins[0];
-  {
-    res.header("Access-Control-Allow-Origin", allowedOrigin || "https://nextgenies.com");
-    res.header("Vary", "Origin");
-  }
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.set("Cache-Control", "no-store");
-  res.status(200).end();
-});
 
 app.use(express.json({ limit: "50kb" }));
 
@@ -417,7 +401,7 @@ app.post("/api/contacts", contactRateLimit, async (req, res, next) => {
       company.length > 150 ||
       service.length > 100 ||
       message.length > 15000 ||
-      !/^[^s@]+@[^s@]+.[^s@]+$/.test(email)
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     ) {
       console.warn("❌ [Backend /api/contacts] Step 2 Failed: Validation failed! Invalid or missing fields.");
       return res.status(400).json({
@@ -761,6 +745,10 @@ app.use((error, _req, res, next) => {
 
   console.error("SERVER ERROR:", error);
 
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+
   res.status(500).json({
     message: isProduction ? "Something went wrong." : error.message || "Something went wrong",
   });
@@ -775,10 +763,7 @@ async function startServer() {
       if (adminJwtSecret.length < 32 || adminJwtSecret === "replace-with-a-long-random-secret") {
         throw new Error("ADMIN_JWT_SECRET must be a unique random value of at least 32 characters in production.");
       }
-      if (!frontendOrigins.length || !frontendOrigins.includes("https://nextgenies.com")) {
-        throw new Error("FRONTEND_ORIGINS must include https://nextgenies.com in production.");
-      }
-    }
+          }
     const { driver } = await initDatabase();
 
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
