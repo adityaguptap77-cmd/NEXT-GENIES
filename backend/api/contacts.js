@@ -13,3 +13,4 @@ export default function handler(req, res) {
   req.url = "/api/contacts";
   return app(req, res);
 }
+
