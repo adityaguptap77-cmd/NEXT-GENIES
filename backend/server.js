@@ -210,8 +210,14 @@ const adminLoginRateLimit = rateLimit({
   message: { message: "Too many login attempts. Please try again later." },
 });
 
-const uploadsPath = path.resolve(__dirname, "..", "public", "uploads");
-fs.mkdirSync(uploadsPath, { recursive: true });
+const uploadsPath = process.env.VERCEL
+  ? path.resolve("/tmp", "uploads")
+  : path.resolve(__dirname, "..", "public", "uploads");
+try {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+} catch {
+  // Ignored in read-only serverless environments
+}
 
 const blogUpload = multer({
   storage: multer.memoryStorage(),
@@ -793,7 +799,8 @@ app.use((error, _req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "*");
 
   res.status(500).json({
-    message: isProduction ? "Something went wrong." : error.message || "Something went wrong",
+    status: "error",
+    message: error.message || "Internal server error",
   });
 });
 
@@ -830,4 +837,10 @@ async function startServer() {
   }
 }
 
-startServer();
+// Export app for Vercel Serverless Functions
+export default app;
+
+// Only run standalone listener when not in Vercel serverless environment
+if (!process.env.VERCEL) {
+  startServer();
+}

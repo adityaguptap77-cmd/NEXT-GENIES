@@ -99,9 +99,13 @@ export async function initDatabase() {
   }
 
   // Setup local SQLite database
-  const dataDir = path.resolve(__dirname, "data");
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  const dataDir = process.env.VERCEL ? "/tmp" : path.resolve(__dirname, "data");
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  } catch {
+    // Ignore read-only filesystem errors in serverless
   }
 
   const dbFilePath = path.join(dataDir, "nextgenies.db");
