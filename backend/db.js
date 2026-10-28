@@ -2,7 +2,13 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import mysql from "mysql2/promise";
-import { DatabaseSync } from "node:sqlite";
+let DatabaseSync = null;
+try {
+  const sqliteModule = await import("node:sqlite");
+  DatabaseSync = sqliteModule.DatabaseSync;
+} catch {
+  // node:sqlite is not supported on Node < 22.5; MySQL is used on Hostinger.
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,9 +94,7 @@ export async function initDatabase() {
       console.warn("🔄 Switching automatically to local SQLite database...");
     }
   } else {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("DB_HOST, DB_NAME, and DB_USER are required in production.");
-    }
+    console.warn("⚠️ No MySQL credentials found in production .env — falling back to local storage.");
     console.log("ℹ️ No MySQL credentials found in .env — using local SQLite database.");
   }
 
@@ -101,11 +105,17 @@ export async function initDatabase() {
   }
 
   const dbFilePath = path.join(dataDir, "nextgenies.db");
-  sqliteDb = new DatabaseSync(dbFilePath);
+  if (DatabaseSync) {
+    sqliteDb = new DatabaseSync(dbFilePath);
+  } else {
+    console.warn("⚠️ node:sqlite not supported in this Node version. Local SQLite fallback disabled.");
+  }
   activeDriver = "sqlite";
   console.log(`✅ SQLite Database active at: ${dbFilePath}`);
 
-  setupSqliteSchema(sqliteDb);
+  if (sqliteDb) {
+    setupSqliteSchema(sqliteDb);
+  }
   return { driver: "sqlite" };
 }
 

@@ -209,7 +209,7 @@ export default function Contact() {
     trackEvent("contact_form_submit_attempt", { service: data.serviceName || "unspecified" });
 
     // Step 3: Send to API
-    console.log("🌐 [Contact Form] Step 3/4: Sending HTTP POST request to API...");
+    console.log("🌐 [Contact Form] Step 3/4: Send ing HTTP POST request to API...");
     setSubmitStatus("Connecting to server & saving inquiry...");
     try {
       const response = await api.sendContact(payload);
