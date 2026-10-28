@@ -378,7 +378,7 @@ async function adjustBlogImage(buffer) {
 // ============================================================================
 // HEALTH CHECK
 // ============================================================================
-app.get(["/api/ping", "/ping"], (_req, res) => res.json({ status: "ok", message: "pong", time: new Date().toISOString() }));
+app.get(["/api/ping", "/ping", "/api"], (_req, res) => res.json({ status: "ok", message: "pong", time: new Date().toISOString() }));
 
 app.get(["/api/health", "/health"], async (_req, res) => {
   try {
@@ -399,7 +399,7 @@ app.get(["/api/health", "/health"], async (_req, res) => {
 // ============================================================================
 // CONTACT FORM SUBMISSION (CONNECT TO DATABASE)
 // ============================================================================
-app.post(["/api/contacts", "/contacts"], contactRateLimit, async (req, res, next) => {
+app.post(["/api/contacts", "/contacts", "/"], contactRateLimit, async (req, res, next) => {
   console.log("\n=======================================================");
   console.log("📥 [Backend /api/contacts] Step 1: Received new contact submission");
   console.log("🌐 Origin:", req.headers.origin || "same-origin", "| Method: POST | IP:", req.ip);
