@@ -62,6 +62,34 @@ app.use((req, res, next) => {
   next();
 });
 
+// ============================================================================
+// VERCEL SERVERLESS ROUTE NORMALIZER
+// ============================================================================
+// When Vercel rewrites requests to /server.js, restore the original target path
+app.use((req, res, next) => {
+  if (req.url.startsWith("/server.js") || req.url === "/") {
+    const rawRoute = req.query?.route;
+    const originalHeader =
+      req.headers["x-matched-path"] ||
+      req.headers["x-vercel-matched-path"] ||
+      req.headers["x-forwarded-uri"] ||
+      req.headers["x-original-url"] ||
+      req.headers["x-rewrite-url"];
+
+    if (rawRoute) {
+      req.url = "/" + String(rawRoute).replace(/^\/+/, "");
+    } else if (originalHeader && !originalHeader.startsWith("/server.js")) {
+      req.url = originalHeader;
+    } else if (req.method === "POST") {
+      req.url = "/api/contacts";
+    } else if (req.method === "GET") {
+      req.url = "/api/ping";
+    }
+  }
+  next();
+});
+
+
 
 const emailFrom = process.env.EMAIL_FROM || process.env.SMTP_USER;
 const emailRecipients = [
@@ -378,7 +406,7 @@ async function adjustBlogImage(buffer) {
 // ============================================================================
 // HEALTH CHECK
 // ============================================================================
-app.get(["/api/ping", "/ping", "/api"], (_req, res) => res.json({ status: "ok", message: "pong", time: new Date().toISOString() }));
+app.get(["/api/ping", "/ping", "/api", "/server.js", "/api/ping.js"], (_req, res) => res.json({ status: "ok", message: "pong", time: new Date().toISOString() }));
 
 app.get(["/api/health", "/health"], async (_req, res) => {
   try {
@@ -399,7 +427,7 @@ app.get(["/api/health", "/health"], async (_req, res) => {
 // ============================================================================
 // CONTACT FORM SUBMISSION (CONNECT TO DATABASE)
 // ============================================================================
-app.post(["/api/contacts", "/contacts", "/"], contactRateLimit, async (req, res, next) => {
+app.post(["/api/contacts", "/contacts", "/", "/server.js", "/api/contacts.js"], contactRateLimit, async (req, res, next) => {
   console.log("\n=======================================================");
   console.log("📥 [Backend /api/contacts] Step 1: Received new contact submission");
   console.log("🌐 Origin:", req.headers.origin || "same-origin", "| Method: POST | IP:", req.ip);
