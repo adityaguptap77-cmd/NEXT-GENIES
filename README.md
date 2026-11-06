@@ -312,8 +312,10 @@ Generate a JWT secret with:
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-Production startup intentionally fails when the admin secrets or required
-MySQL settings are missing. Do not use the development defaults.
+The API process can start while MySQL is unavailable, but `/api/health` reports
+degraded readiness and data operations fail closed. Admin login also fails
+closed unless all admin credentials and a 32-character-or-longer JWT secret are
+configured. Do not use development credentials in production.
 
 ### 3. Build the application
 
@@ -344,17 +346,25 @@ cd ..
 In hPanel, create or configure the Node.js application with:
 
 ```text
-Application root: NEXT-GENIES
+Application root: repository root (the folder containing package.json and vite.config.js)
 Startup file: backend/server.js
 Environment: production
 Node.js: 20 or newer
 ```
 
-The backend builds `dist/` with Vite at startup if it is missing, then serves
-the frontend and API from the same application. Hostinger must install
-development dependencies for this fallback build because Vite is a build-time
-dependency. Do not upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or
-local database files unless you intentionally migrate their data.
+Do not set the application root to the `backend/` subfolder. Its separate
+`package.json` has no frontend `build` script and does not install Vite. The
+root package manifest is required for `npm run build` and the generated
+`dist/` folder.
+
+Build `dist/` during deployment, before starting the Node.js application. The
+server does not run npm or Vite at startup. If `dist/index.html` is missing,
+the API can still start but website routes return 503 until a build is deployed.
+Hostinger's static **Publish** mode serves `dist/` only and does not start
+Express; choose a Node.js application for the combined frontend/API setup, or
+keep the frontend static and configure it to call a separately running backend.
+Do not upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or local
+database files unless you intentionally migrate their data.
 
 Restart the Node.js application after setting environment variables.
 
@@ -372,6 +382,12 @@ VITE_API_URL=https://api.nextgenies.com
 SEO_API_URL=https://api.nextgenies.com
 FRONTEND_ORIGINS=https://nextgenies.com,https://www.nextgenies.com
 ```
+
+Never set a production `VITE_API_URL` or `SEO_API_URL` to `localhost`; a
+visitor's browser would interpret that as their own computer. If frontend and
+backend share one origin, leave `VITE_API_URL` empty. After signing in to
+`/admin`, open the **System** tab to check MySQL, SMTP, CORS origins, and build
+readiness; the SMTP check verifies connectivity only and does not send mail.
 
 ### 6. Verify the live deployment
 

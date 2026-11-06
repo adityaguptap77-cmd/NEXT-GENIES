@@ -33,7 +33,12 @@ for (const file of [".env", ".env.production", ".env.local"]) {
 }
 
 const SITE = (process.env.VITE_SITE_URL || process.env.SITE_URL || "https://nextgenies.com").replace(/\/$/, "");
-const API = (process.env.SEO_API_URL || process.env.VITE_API_URL || SITE).replace(/\/$/, "");
+const seoCandidates = [process.env.SEO_API_URL, process.env.VITE_API_URL].filter(Boolean);
+const configuredSeoApi = seoCandidates.find((candidate) => {
+  try { return !["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(new URL(candidate).hostname); }
+  catch { return false; }
+});
+const API = (configuredSeoApi || SITE).replace(/\/$/, "");
 const SITE_NAME = "NextGenies";
 const OG_IMAGE = `${SITE}/og-image.png`;
 
@@ -49,12 +54,13 @@ const canonical = (p) => (p === "/" ? `${SITE}/` : `${SITE}${p}/`);
 const fullTitle = (t) => (t ? `${t} | ${SITE_NAME}` : `${SITE_NAME} | Digital Growth Agency`);
 const abs = (p) => (!p ? "" : /^https?:\/\//i.test(p) ? p : `${API}${p}`);
 
-function head({ title, description, path: p, type = "website", image = OG_IMAGE, robots = "index, follow", canonicalUrl, ld }) {
+function head({ title, description, path: p, type = "website", image = OG_IMAGE, robots = "index, follow", canonicalUrl, keywords, ld }) {
   const t = fullTitle(title);
   const url = canonicalUrl || canonical(p);
   return [
     `<title>${esc(t)}</title>`,
     `<meta name="description" content="${esc(description)}" />`,
+    keywords ? `<meta name="keywords" content="${esc(keywords)}" />` : "",
     `<link rel="canonical" href="${url}" />`,
     `<meta name="robots" content="${robots}" />`,
     `<meta property="og:type" content="${type}" />`,
@@ -180,7 +186,17 @@ try {
     write(
       p,
       render({
-        headHtml: head({ title, description, path: p, type: "article", image, robots: b.robotsMeta || "index, follow", canonicalUrl: pageCanonical, ld }),
+        headHtml: head({
+          title,
+          description,
+          path: p,
+          type: "article",
+          image,
+          robots: b.robotsMeta || "index, follow",
+          canonicalUrl: pageCanonical,
+          keywords: [b.focusKeywords, b.additionalKeywords].filter(Boolean).join(", "),
+          ld,
+        }),
         bodyHtml: fallback(`<article><h1>${esc(b.title)}</h1><p>${esc(b.description)}</p>${paragraphs}</article>`),
       }),
     );
@@ -204,7 +220,9 @@ const urls = [
     changefreq: r.changefreq,
     priority: r.priority,
   })),
-  ...blogs.map((b) => ({ loc: canonical(`/blogs/${b.slug}`), lastmod: day(b.updatedAt || b.publishedAt || b.createdAt), changefreq: "monthly", priority: 0.7 })),
+  ...blogs
+    .filter((b) => !String(b.robotsMeta || "index, follow").toLowerCase().includes("noindex"))
+    .map((b) => ({ loc: b.canonicalUrl || canonical(`/blogs/${b.slug}`), lastmod: day(b.updatedAt || b.publishedAt || b.createdAt), changefreq: "monthly", priority: 0.7 })),
 ];
 fs.writeFileSync(
   path.join(dist, "sitemap.xml"),

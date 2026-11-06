@@ -168,28 +168,16 @@ export default function Contact() {
       .join("\n");
 
   async function submit() {
-    console.log("=======================================================");
-    console.log("🚀 [Contact Form Submission] STARTING SUBMISSION PROCESS");
-    console.log("=======================================================");
-    console.log("📋 [Contact Form] Form data state:", { ...data });
-
-    // Step 1: Re-validate all answers
-    console.log("🔍 [Contact Form] Step 1/4: Validating all answers...");
     setSubmitStatus("Validating brief...");
     for (let i = 0; i < STEPS.length - 1; i++) {
       const problem = validate(STEPS[i]);
       if (problem) {
-        console.warn(`❌ [Contact Form] Validation failed at Step ${i + 1} (${STEPS[i]}):`, problem);
         go(i, "back");
         setError(problem);
         setSubmitStatus("");
         return;
       }
     }
-    console.log("✅ [Contact Form] Step 1/4 Passed: All questions properly answered.");
-
-    // Step 2: Assemble payload
-    console.log("📦 [Contact Form] Step 2/4: Assembling submission payload...");
     setSubmitStatus("Preparing project brief...");
     const payload = {
       fullName: data.fullName.trim(),
@@ -202,31 +190,22 @@ export default function Contact() {
       timeline: data.timelineLabel,
       message: summary(),
     };
-    console.log("📦 [Contact Form] Step 2/4 Payload assembled:", payload);
-
     setSubmitting(true);
     setFailure(null);
     trackEvent("contact_form_submit_attempt", { service: data.serviceName || "unspecified" });
 
-    // Step 3: Send to API
-    console.log("🌐 [Contact Form] Step 3/4: Sending HTTP POST request to API...");
     try {
-      const response = await api.sendContact(payload);
-      console.log("🎉 [Contact Form] Step 4/4: SUCCESS! Server responded with:", response);
+      await api.sendContact(payload);
       setSubmitStatus("Inquiry received!");
       setDone(true);
       trackEvent("contact_form_submit_success", { service: data.serviceName || "unspecified" });
     } catch (err) {
-      console.error("🚨 [Contact Form] Step 4/4: SUBMISSION FAILED!", err);
-      console.error("🚨 [Contact Form] Error details:", { message: err.message, status: err.status, network: err.network });
       setSubmitStatus("");
       if (err.isRateLimited) startCooldown(err.retryAfter || 900);
       setFailure({ message: err.message, rateLimited: err.isRateLimited });
       trackEvent("contact_form_submit_failure", { service: data.serviceName || "unspecified", rate_limited: Boolean(err.isRateLimited) });
     } finally {
       setSubmitting(false);
-      console.log("🏁 [Contact Form] Submission process completed.");
-      console.log("=======================================================");
     }
   }
 

@@ -61,6 +61,10 @@ export default function BlogPost() {
   const related = blogs.filter((b) => b.slug !== blog.slug).slice(0, 3);
   const mins = readingTime(blog.content);
   const faq = Array.isArray(blog.faq) ? blog.faq : [];
+  const taxonomy = [
+    ...(Array.isArray(blog.categories) ? blog.categories.map((label) => ({ label, type: "category" })) : []),
+    ...(Array.isArray(blog.tags) ? blog.tags.map((label) => ({ label, type: "tag" })) : []),
+  ];
 
   const copy = async () => {
     try {
@@ -125,6 +129,12 @@ export default function BlogPost() {
             <h1 className="h1">{blog.title}</h1>
             <p className="lead">{blog.description}</p>
           </header>
+
+          {taxonomy.length > 0 && (
+            <div className="tags blog-taxonomy" aria-label="Article categories and tags">
+              {taxonomy.map(({ label, type }, index) => <span className={type === "category" ? "pill" : "tag"} key={`${type}-${label}-${index}`}>{label}</span>)}
+            </div>
+          )}
 
           {blog.imageUrl && (
             <img className="post-hero neu-raised" src={mediaUrl(blog.imageUrl)} alt={blog.altText || blog.title} width="1200" height="675" decoding="async" />

@@ -100,6 +100,7 @@ export const api = {
     deleteBlog: (token, id) => request(`/api/admin/blogs/${id}`, { method: "DELETE", token }),
     contacts: (token) => request("/api/admin/contacts", { token }),
     deleteContact: (token, id) => request(`/api/admin/contacts/${id}`, { method: "DELETE", token }),
+    systemStatus: (token) => request("/api/admin/system-status", { token, timeout: 25000 }),
   },
 };
 

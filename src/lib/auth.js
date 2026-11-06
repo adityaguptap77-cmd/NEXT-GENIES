@@ -19,8 +19,9 @@ export function tokenExpiry(token) {
 
 export function isTokenValid(token) {
   if (!token) return false;
-  const exp = tokenExpiry(token);
-  return exp === 0 ? true : exp - 5000 > Date.now();
+  const payload = decodeToken(token);
+  if (!payload?.exp || payload.role !== "admin" || !payload.sub) return false;
+  return payload.exp * 1000 - 5000 > Date.now();
 }
 
 export function loadToken() {

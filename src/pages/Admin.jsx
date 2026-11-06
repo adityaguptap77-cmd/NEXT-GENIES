@@ -95,6 +95,9 @@ function Dashboard({ token, onLogout, onExpired }) {
   const [editingId, setEditingId] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [faqItems, setFaqItems] = useState([]);
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [systemBusy, setSystemBusy] = useState(false);
+  const [systemError, setSystemError] = useState("");
 
   const guard = useCallback(
     (err) => {
@@ -109,10 +112,26 @@ function Dashboard({ token, onLogout, onExpired }) {
 
   const [reloadKey, setReloadKey] = useState(0);
   const refresh = () => {
+    if (tab === "system") {
+      void checkSystem();
+      return;
+    }
     setLoading(true);
     setLoadError("");
     setReloadKey((k) => k + 1);
   };
+
+  async function checkSystem() {
+    setSystemBusy(true);
+    setSystemError("");
+    try {
+      setSystemStatus(await api.admin.systemStatus(token));
+    } catch (err) {
+      if (!guard(err)) setSystemError(err.message);
+    } finally {
+      setSystemBusy(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -249,9 +268,10 @@ function Dashboard({ token, onLogout, onExpired }) {
         <div className="tabs neu-inset" role="tablist">
           <button role="tab" aria-selected={tab === "leads"} className={tab === "leads" ? "on" : ""} onClick={() => setTab("leads")}>Leads <b>{leads.length}</b></button>
           <button role="tab" aria-selected={tab === "blogs"} className={tab === "blogs" ? "on" : ""} onClick={() => setTab("blogs")}>Blogs <b>{blogs.length}</b></button>
+          <button role="tab" aria-selected={tab === "system"} className={tab === "system" ? "on" : ""} onClick={() => { setTab("system"); void checkSystem(); }}>System</button>
         </div>
         <div className="admin-bar-actions">
-          <button className="btn btn-neu btn-sm" onClick={refresh} disabled={loading}>{loading ? "Refreshing…" : "↻ Refresh"}</button>
+          <button className="btn btn-neu btn-sm" onClick={refresh} disabled={tab === "system" ? systemBusy : loading}>{(tab === "system" ? systemBusy : loading) ? "Refreshing…" : "↻ Refresh"}</button>
           <button className="btn btn-neu btn-sm" onClick={onLogout}>Log out</button>
         </div>
       </header>
@@ -387,6 +407,49 @@ function Dashboard({ token, onLogout, onExpired }) {
                 </div>
               ))}
             </aside>
+          </section>
+        )}
+
+        {tab === "system" && (
+          <section aria-label="System diagnostics">
+            <div className="admin-tools">
+              <div>
+                <h1 className="h3">System status</h1>
+                <p className="muted">Connection checks do not send a test email or change website data.</p>
+              </div>
+              <button className="btn btn-neu" onClick={() => void checkSystem()} disabled={systemBusy}>{systemBusy ? "Checking…" : "Check connections"}</button>
+            </div>
+            {systemError && <p className="alert error" role="alert">{systemError}</p>}
+            {systemBusy && !systemStatus && <div className="state-card neu-raised"><p className="muted">Checking database and SMTP connectivity…</p></div>}
+            {systemStatus && (
+              <div className="lead-grid">
+                <article className="lead neu-raised">
+                  <h2 className="h4">MySQL database</h2>
+                  <p role="status"><strong>{systemStatus.database.connected ? "Connected" : systemStatus.database.configured ? "Connection failed" : "Not configured"}</strong></p>
+                  <p className="muted">{systemStatus.database.name || "Database name not set"}{systemStatus.database.host ? ` · ${systemStatus.database.host}` : ""}</p>
+                  {systemStatus.database.missing?.length > 0 && <p className="muted">Missing: {systemStatus.database.missing.join(", ")}</p>}
+                  {systemStatus.database.error && <p className="alert error" role="status">{systemStatus.database.error}</p>}
+                </article>
+                <article className="lead neu-raised">
+                  <h2 className="h4">SMTP email</h2>
+                  <p role="status"><strong>{systemStatus.smtp.verified ? "Connected and authenticated" : systemStatus.smtp.configured ? "Connection failed" : "Not fully configured"}</strong></p>
+                  <p className="muted">{systemStatus.smtp.host || "SMTP host not set"}{systemStatus.smtp.port ? ` · port ${systemStatus.smtp.port}` : ""}{systemStatus.smtp.secure ? " · TLS" : " · STARTTLS"}</p>
+                  <p className="muted">Login: {systemStatus.smtp.username || "not set"}<br />From: {systemStatus.smtp.from || "not set"}<br />Recipients configured: {systemStatus.smtp.recipientCount}</p>
+                  {systemStatus.smtp.missing?.length > 0 && <p className="muted">Missing: {systemStatus.smtp.missing.join(", ")}</p>}
+                  {systemStatus.smtp.error && <p className="alert error" role="status">{systemStatus.smtp.error}</p>}
+                  <small>The SMTP password is never shown here.</small>
+                </article>
+                <article className="lead neu-raised">
+                  <h2 className="h4">CORS and frontend</h2>
+                  <p><strong>Frontend build: {systemStatus.frontend.built ? "ready" : "missing"}</strong></p>
+                  <p className="muted">Allowed browser origins:</p>
+                  {systemStatus.cors.allowedOrigins.length
+                    ? <ul>{systemStatus.cors.allowedOrigins.map((origin) => <li key={origin}>{origin}</li>)}</ul>
+                    : <p className="alert error" role="status">No FRONTEND_ORIGINS are configured. Cross-origin requests are blocked.</p>}
+                  <small>Checked {new Date(systemStatus.checkedAt).toLocaleString()}</small>
+                </article>
+              </div>
+            )}
           </section>
         )}
       </main>

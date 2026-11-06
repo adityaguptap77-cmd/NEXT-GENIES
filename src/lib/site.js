@@ -1,7 +1,17 @@
 // Central place for site-wide constants.
 export const SITE_NAME = "NextGenies";
 export const SITE_URL = (import.meta.env.VITE_SITE_URL || "https://nextgenies.com").replace(/\/$/, "");
-export const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const configuredApiUrl = (import.meta.env.VITE_API_URL || "").trim().replace(/\/$/, "");
+const isLocalApiUrl = (() => {
+  if (!configuredApiUrl) return false;
+  try {
+    return ["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(new URL(configuredApiUrl).hostname);
+  } catch {
+    return false;
+  }
+})();
+// Never bake a developer's localhost API into the production bundle.
+export const API_URL = import.meta.env.PROD && isLocalApiUrl ? "" : configuredApiUrl;
 export const CONTACT = {
   email: "nextgenies.team@gmail.com",
   phone: "+91 99108 80760",
