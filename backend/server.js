@@ -11,7 +11,6 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { timingSafeEqual } from "node:crypto";
-import { ROUTE_META } from "../src/seo/routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +25,24 @@ const distPath = path.join(projectRoot, "dist");
 const indexPath = path.join(distPath, "index.html");
 const sitemapPath = path.join(distPath, "sitemap.xml");
 const frontendReady = existsSync(indexPath);
+const FALLBACK_ROUTE_META = [
+  { path: "/", changefreq: "weekly", priority: 1.0 },
+  { path: "/services", changefreq: "monthly", priority: 0.9 },
+  { path: "/about", changefreq: "monthly", priority: 0.7 },
+  { path: "/contact", changefreq: "monthly", priority: 0.8 },
+  { path: "/blogs", changefreq: "weekly", priority: 0.8 },
+  { path: "/privacy-policy", changefreq: "yearly", priority: 0.3 },
+  { path: "/terms-and-conditions", changefreq: "yearly", priority: 0.3 },
+  { path: "/cookie-policy", changefreq: "yearly", priority: 0.3 },
+  { path: "/disclaimer", changefreq: "yearly", priority: 0.3 },
+];
+let ROUTE_META = FALLBACK_ROUTE_META;
+try {
+  ({ ROUTE_META } = await import("../src/seo/routes.js"));
+} catch (error) {
+  if (error.code !== "ERR_MODULE_NOT_FOUND") throw error;
+  console.warn("[seo] src/seo/routes.js is missing from this deployment; using fallback sitemap routes.");
+}
 const JWT_ISSUER = "nextgenies.com";
 const JWT_AUDIENCE = "nextgenies-admin";
 const BLOG_COLUMNS = "id, title, slug, description, content, author, alt_text, categories, tags, meta_title, meta_description, focus_keywords, additional_keywords, robots_meta, canonical_url, faq_schema, is_published, image_url, image_mime_type, created_at, published_at, updated_at";
