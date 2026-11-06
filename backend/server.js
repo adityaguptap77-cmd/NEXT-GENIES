@@ -1,12 +1,38 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
+
+const projectRoot = path.resolve(__dirname, "..");
+const distPath = path.join(projectRoot, "dist");
+const indexPath = path.join(distPath, "index.html");
+let frontendReady = existsSync(indexPath);
+
+if (!frontendReady) {
+  const viteEntry = path.join(projectRoot, "node_modules", "vite", "bin", "vite.js");
+
+  if (existsSync(viteEntry)) {
+    try {
+      console.log("Frontend build is missing; building it before starting the server...");
+      execFileSync(process.execPath, [viteEntry, "build"], {
+        cwd: projectRoot,
+        stdio: "inherit",
+      });
+      frontendReady = existsSync(indexPath);
+    } catch (error) {
+      console.error("Frontend build failed; API will start, but website routes will return 503:", error.message);
+    }
+  } else {
+    console.error("Frontend build is missing and Vite is not installed. Install dev dependencies or run npm run build during deployment.");
+  }
+}
 
 const app = express();
 
@@ -20,8 +46,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-const distPath = path.resolve(__dirname, "..", "dist");
-app.use(express.static(distPath));
+if (frontendReady) app.use(express.static(distPath));
 
 // In-memory data
 let contacts = [];
@@ -127,6 +152,10 @@ app.delete("/api/admin/blogs/:id", (req, res) => {
 
 // Serve the React app for browser routes. API routes above remain JSON endpoints.
 app.get(/^(?!\/api(?:\/|$)).*/, (_req, res, next) => {
+  if (!frontendReady) {
+    return res.status(503).type("text/plain").send("The website frontend is not built. Run npm run build during deployment.");
+  }
+
   res.sendFile(path.join(distPath, "index.html"), (error) => {
     if (error) next(error);
   });

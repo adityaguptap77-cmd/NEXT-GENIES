@@ -345,17 +345,16 @@ In hPanel, create or configure the Node.js application with:
 
 ```text
 Application root: NEXT-GENIES
-Startup file: start.mjs
+Startup file: backend/server.js
 Environment: production
 Node.js: 20 or newer
 ```
 
-The `start.mjs` entrypoint builds `dist/` before starting `backend/server.js`,
-so the frontend must not be started as a separate Node process. Ensure
-Hostinger installs development dependencies during startup because Vite is
-required to create `dist/`. Do not upload `node_modules/`, `.env`,
-`backend/.env`, `.git/`, or local database files unless you intentionally
-migrate their data.
+The backend builds `dist/` with Vite at startup if it is missing, then serves
+the frontend and API from the same application. Hostinger must install
+development dependencies for this fallback build because Vite is a build-time
+dependency. Do not upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or
+local database files unless you intentionally migrate their data.
 
 Restart the Node.js application after setting environment variables.
 
