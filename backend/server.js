@@ -1,11 +1,27 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 
-// Simple middleware: open CORS and JSON body parser (no extra security / rate limits)
-app.use(cors());
+const configuredOrigins = (process.env.FRONTEND_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: configuredOrigins.length > 0 ? configuredOrigins : true,
+}));
 app.use(express.json());
+
+const distPath = path.resolve(__dirname, "..", "dist");
+app.use(express.static(distPath));
 
 // In-memory data
 let contacts = [];
@@ -109,8 +125,12 @@ app.delete("/api/admin/blogs/:id", (req, res) => {
   res.json({ success: true });
 });
 
-// Root welcome message
-app.get("/", (_req, res) => res.send("NextGenies Backend is running!"));
+// Serve the React app for browser routes. API routes above remain JSON endpoints.
+app.get(/^(?!\/api(?:\/|$)).*/, (_req, res, next) => {
+  res.sendFile(path.join(distPath, "index.html"), (error) => {
+    if (error) next(error);
+  });
+});
 
 // Start server when run directly
 const PORT = process.env.PORT || 5000;
