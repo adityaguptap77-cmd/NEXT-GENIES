@@ -345,14 +345,17 @@ In hPanel, create or configure the Node.js application with:
 
 ```text
 Application root: NEXT-GENIES
-Startup file: backend/server.js
+Startup file: start.mjs
 Environment: production
 Node.js: 20 or newer
 ```
 
-Upload the application source, `dist/`, and both package manifests. Do not
-upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or local database
-files unless you intentionally migrate their data.
+The `start.mjs` entrypoint builds `dist/` before starting `backend/server.js`,
+so the frontend must not be started as a separate Node process. Ensure
+Hostinger installs development dependencies during startup because Vite is
+required to create `dist/`. Do not upload `node_modules/`, `.env`,
+`backend/.env`, `.git/`, or local database files unless you intentionally
+migrate their data.
 
 Restart the Node.js application after setting environment variables.
 
