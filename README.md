@@ -363,10 +363,25 @@ the API can still start but website routes return 503 until a build is deployed.
 Hostinger's static **Publish** mode serves `dist/` only and does not start
 Express; choose a Node.js application for the combined frontend/API setup, or
 keep the frontend static and configure it to call a separately running backend.
-With a static frontend and separate API, the main domain's sitemap and
-prerendered blog metadata are build-time snapshots; use a reverse proxy/route
-to the Node app on the main domain if you need the sitemap to update immediately
-after blog publication.
+To make `https://nextgenies.com/sitemap.xml` dynamic, the `nextgenies.com`
+domain itself must be assigned to this Node.js application. In hPanel, open the
+Node.js application, add `nextgenies.com` (and `www.nextgenies.com` if it is
+used) under its domain or application mapping, and make sure DNS for both
+hostnames points to the same Hostinger account/application. Do not serve the
+domain from **Websites → Publish** at the same time: that serves the static
+`dist/sitemap.xml` before Express can handle the request. After the Node.js
+application is running, `/sitemap.xml` is handled by `app.get("/sitemap.xml")`,
+which queries the `blogs` table on every request, includes only published
+indexable posts, and automatically reflects edits, publications, unpublishing,
+and deletions.
+
+For this same-origin setup, set `VITE_API_URL` to an empty value in the
+production environment, keep `VITE_SITE_URL=https://nextgenies.com`, rebuild
+the frontend, restart the Node.js application, and verify that
+`https://nextgenies.com/api/health` returns `"database":"mysql"`. If the
+frontend remains in static Publish mode on the main domain, the exact public
+sitemap URL cannot be dynamic without a Hostinger reverse-proxy rule; a
+separate API hostname alone will not change `nextgenies.com/sitemap.xml`.
 Do not upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or local
 database files unless you intentionally migrate their data.
 

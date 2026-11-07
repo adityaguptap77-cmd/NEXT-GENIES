@@ -9,6 +9,8 @@ Options -Indexes
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  # Keep the public sitemap database-backed while the frontend and API use separate Hostinger apps.
+  RewriteRule ^sitemap\.xml$ https://nextgenies-com-612029.hostingersite.com/sitemap.xml [R=307,L,NE]
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_URI} !^/api [NC]
   RewriteCond %{REQUEST_URI} !^/uploads [NC]
