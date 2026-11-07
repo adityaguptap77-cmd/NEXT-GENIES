@@ -43,7 +43,7 @@ const JWT_AUDIENCE = "nextgenies-admin";
 const BLOG_COLUMNS = "id, title, slug, description, content, author, alt_text, categories, tags, meta_title, meta_description, focus_keywords, additional_keywords, robots_meta, canonical_url, faq_schema, is_published, image_url, image_mime_type, created_at, published_at, updated_at";
 
 if (!frontendReady) {
-  console.warn("[frontend] dist/index.html is missing. The API will run, but the website needs `npm run build` before startup.");
+  console.info("[frontend] No dist/index.html beside the API server. This is expected when the frontend is deployed separately; run `npm run build` here only if this Node app should also serve the website.");
 }
 
 const defaultOrigins = ["https://nextgenies.com", "https://www.nextgenies.com"];
@@ -65,6 +65,10 @@ function httpError(status, message, code) {
 }
 
 app.disable("x-powered-by");
+// Hostinger terminates public traffic at a reverse proxy before forwarding to Node.
+// Trust only that single hop so req.ip (and express-rate-limit) uses the client address
+// from X-Forwarded-For without trusting arbitrary forwarded headers from the internet.
+app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(cors({
   origin(origin, callback) {
@@ -730,7 +734,7 @@ app.get("/api/blogs/:id/image", async (req, res) => {
   if (!/^\d+$/.test(String(req.params.id))) throw httpError(404, "Image not found.");
   const [rows] = await getPool().execute("SELECT image_data, image_mime_type FROM blogs WHERE id=? AND is_published=1 LIMIT 1", [req.params.id]);
   if (!rows[0]?.image_data) throw httpError(404, "Image not found.");
-  res.set({ "Content-Type": rows[0].image_mime_type || "application/octet-stream", "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400", "X-Content-Type-Options": "nosniff" });
+  res.set({ "Content-Type": rows[0].image_mime_type || "application/octet-stream", "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400", "Cross-Origin-Resource-Policy": "cross-origin", "X-Content-Type-Options": "nosniff" });
   res.send(rows[0].image_data);
 });
 app.get("/api/blogs/:slug", async (req, res) => {
