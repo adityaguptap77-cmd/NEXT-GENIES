@@ -25,7 +25,9 @@ const distPath = path.join(projectRoot, "dist");
 const indexPath = path.join(distPath, "index.html");
 const sitemapPath = path.join(distPath, "sitemap.xml");
 const frontendReady = existsSync(indexPath);
-const FALLBACK_ROUTE_META = [
+// Keep the backend sitemap independent from frontend source files: some hosts deploy
+// the Node app without the Vite `src/` tree, and their loader requires this module synchronously.
+const ROUTE_META = [
   { path: "/", changefreq: "weekly", priority: 1.0 },
   { path: "/services", changefreq: "monthly", priority: 0.9 },
   { path: "/about", changefreq: "monthly", priority: 0.7 },
@@ -36,13 +38,6 @@ const FALLBACK_ROUTE_META = [
   { path: "/cookie-policy", changefreq: "yearly", priority: 0.3 },
   { path: "/disclaimer", changefreq: "yearly", priority: 0.3 },
 ];
-let ROUTE_META = FALLBACK_ROUTE_META;
-try {
-  ({ ROUTE_META } = await import("../src/seo/routes.js"));
-} catch (error) {
-  if (error.code !== "ERR_MODULE_NOT_FOUND") throw error;
-  console.warn("[seo] src/seo/routes.js is missing from this deployment; using fallback sitemap routes.");
-}
 const JWT_ISSUER = "nextgenies.com";
 const JWT_AUDIENCE = "nextgenies-admin";
 const BLOG_COLUMNS = "id, title, slug, description, content, author, alt_text, categories, tags, meta_title, meta_description, focus_keywords, additional_keywords, robots_meta, canonical_url, faq_schema, is_published, image_url, image_mime_type, created_at, published_at, updated_at";
@@ -51,10 +46,14 @@ if (!frontendReady) {
   console.warn("[frontend] dist/index.html is missing. The API will run, but the website needs `npm run build` before startup.");
 }
 
-const configuredOrigins = [...new Set((process.env.FRONTEND_ORIGINS || "")
-  .split(",")
-  .map((origin) => origin.trim().replace(/\/$/, ""))
-  .filter(Boolean))];
+const defaultOrigins = ["https://nextgenies.com", "https://www.nextgenies.com"];
+const configuredOrigins = [...new Set([
+  ...defaultOrigins,
+  ...(process.env.FRONTEND_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim().replace(/\/$/, ""))
+    .filter(Boolean),
+])];
 const allowedOrigins = new Set(configuredOrigins);
 
 function httpError(status, message, code) {
@@ -826,7 +825,7 @@ app.get("/blogs/:slug", async (req, res, next) => {
   res.set("Cache-Control", "no-cache").type("html").send(html);
 });
 
-if (frontendReady) app.use(express.static(distPath, { index: false, fallthrough: true }));
+if (frontendReady) app.use(express.static(distPath, { fallthrough: true }));
 app.get(/^(?!\/api(?:\/|$)).*/, (_req, res, next) => {
   if (!frontendReady) return res.status(503).type("text/plain").send("The website frontend is not built. Run npm run build before starting the server.");
   res.sendFile(indexPath, (error) => { if (error) next(error); });

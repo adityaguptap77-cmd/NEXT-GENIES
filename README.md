@@ -40,7 +40,7 @@ NextGenies is a high-performance digital growth agency web application built wit
 * **SEO**: Prerendered routes via `@rolldown/plugin-babel` and `scripts/generate-seo.mjs`
 
 ### Backend
-* **Runtime**: Node.js 18+ with Express 5
+* **Runtime**: Node.js 20.19+ or 22.12+ with Express 5 and Vite 8
 * **Database**: MySQL 8 via `mysql2`
 * **Authentication**: JSON Web Tokens (`jsonwebtoken`)
 * **File Handling**: `multer` with MIME-type and size validation
@@ -125,7 +125,7 @@ NEXT-GENIES/
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-* **Node.js**: v18.0.0 or higher
+* **Node.js**: v20.19.0 or v22.12.0 or higher
 * **npm**: v9.0.0 or higher
 * **MySQL**: v8.0 or compatible database instance
 
@@ -349,7 +349,7 @@ In hPanel, create or configure the Node.js application with:
 Application root: repository root (the folder containing package.json and vite.config.js)
 Startup file: backend/server.js
 Environment: production
-Node.js: 20 or newer
+Node.js: 20.19+ or 22.12+
 ```
 
 Do not set the application root to the `backend/` subfolder. Its separate
@@ -363,6 +363,10 @@ the API can still start but website routes return 503 until a build is deployed.
 Hostinger's static **Publish** mode serves `dist/` only and does not start
 Express; choose a Node.js application for the combined frontend/API setup, or
 keep the frontend static and configure it to call a separately running backend.
+With a static frontend and separate API, the main domain's sitemap and
+prerendered blog metadata are build-time snapshots; use a reverse proxy/route
+to the Node app on the main domain if you need the sitemap to update immediately
+after blog publication.
 Do not upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or local
 database files unless you intentionally migrate their data.
 
