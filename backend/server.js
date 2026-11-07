@@ -698,34 +698,97 @@ app.post("/api/contacts", contactLimiter, async (req, res) => {
     contact.needOption, contact.scopePreference, contact.timeline, contact.message,
   ]);
   let notification = "sent";
-  try {
-    const cfg = smtpConfiguration();
-    if (!cfg.configured) throw httpError(503, "SMTP is not configured.", "SMTP_CONFIG_MISSING");
-    await createSmtpTransport().sendMail({
-      from: process.env.EMAIL_FROM,
-      to: smtpRecipients(),
-      replyTo: contact.email,
-      subject: `New website inquiry from ${contact.fullName}`,
-      text: [
-        `Name: ${contact.fullName}`,
-        `Email: ${contact.email}`,
-        `Phone: ${contact.phone || "Not provided"}`,
-        `Company: ${contact.company || "Not provided"}`,
-        `Service: ${contact.service || "Not provided"}`,
-        `Need: ${contact.needOption || "Not provided"}`,
-        `Scope: ${contact.scopePreference || "Not provided"}`,
-        `Timeline: ${contact.timeline || "Not provided"}`,
-        "",
-        "Message:",
-        contact.message || "No additional notes.",
-        `Submission ID: ${result.insertId}`,
-      ].join("\n"),
-    });
-  } catch (error) {
+  let confirmation = "sent";
+  const cfg = smtpConfiguration();
+  if (!cfg.configured) {
     notification = "failed";
-    console.error("[email] contact notification failed:", error.code || "SMTP_ERROR");
+    confirmation = "failed";
+    console.error("[email] contact emails skipped:", cfg.missing.join(", "));
+  } else {
+    try {
+      await createSmtpTransport().sendMail({
+        from: process.env.EMAIL_FROM,
+        to: smtpRecipients(),
+        replyTo: contact.email,
+        subject: `New website inquiry from ${contact.fullName}`,
+        text: [
+          `New project inquiry from ${contact.fullName}`,
+          "",
+          `Email: ${contact.email}`,
+          `Phone: ${contact.phone || "Not provided"}`,
+          `Company: ${contact.company || "Not provided"}`,
+          `Service: ${contact.service || "Not provided"}`,
+          `Need: ${contact.needOption || "Not provided"}`,
+          `Scope: ${contact.scopePreference || "Not provided"}`,
+          `Timeline: ${contact.timeline || "Not provided"}`,
+          "",
+          "Message:",
+          contact.message || "No additional notes.",
+          "",
+          `Submission ID: ${result.insertId}`,
+        ].join("\n"),
+      });
+    } catch (error) {
+      notification = "failed";
+      console.error("[email] contact notification failed:", error.code || "SMTP_ERROR");
+    }
+
+    try {
+      const greetingName = contact.fullName.split(/\s+/)[0] || "there";
+      const details = [
+        ["Service", contact.service],
+        ["What you need", contact.needOption],
+        ["Scope", contact.scopePreference],
+        ["Timeline", contact.timeline],
+      ].filter(([, value]) => value);
+      const detailText = details.map(([label, value]) => `${label}: ${value}`).join("\n");
+      const detailHtml = details.map(([label, value]) => `<li><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</li>`).join("");
+      await createSmtpTransport().sendMail({
+        from: process.env.EMAIL_FROM,
+        to: contact.email,
+        replyTo: process.env.EMAIL_FROM,
+        subject: "We received your project enquiry | NextGenies",
+        text: [
+          `Hi ${greetingName},`,
+          "",
+          "Thank you for reaching out to NextGenies. We have received your project brief and our team will review it shortly.",
+          "We will connect with you within one business day to understand your goals and discuss the next steps.",
+          "",
+          "Your brief:",
+          detailText || "Project details received.",
+          contact.company ? `Company: ${contact.company}` : null,
+          contact.phone ? `Phone / WhatsApp: ${contact.phone}` : null,
+          "",
+          "If you need to add anything, simply reply to this email.",
+          "",
+          "Warm regards,",
+          "Team NextGenies",
+          "https://nextgenies.com",
+        ].filter(Boolean).join("\n"),
+        html: `
+          <div style="background:#f5f7fb;padding:32px 16px;font-family:Arial,sans-serif;color:#1f2937">
+            <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px">
+              <h1 style="margin:0 0 20px;color:#111827;font-size:24px">Thank you for reaching out, ${escapeHtml(greetingName)}.</h1>
+              <p style="font-size:16px;line-height:1.6">We have received your project brief. Our team will review it and connect with you within one business day to understand your goals and discuss the next steps.</p>
+              <h2 style="margin:28px 0 12px;color:#111827;font-size:18px">Your brief</h2>
+              <ul style="padding-left:20px;line-height:1.8">${detailHtml || "<li>Project details received.</li>"}</ul>
+              ${contact.company ? `<p><strong>Company:</strong> ${escapeHtml(contact.company)}</p>` : ""}
+              ${contact.phone ? `<p><strong>Phone / WhatsApp:</strong> ${escapeHtml(contact.phone)}</p>` : ""}
+              <p style="margin-top:28px;font-size:15px;line-height:1.6">If you need to add anything, simply reply to this email.</p>
+              <p style="margin-top:28px;line-height:1.6">Warm regards,<br /><strong>Team NextGenies</strong><br /><a href="https://nextgenies.com">nextgenies.com</a></p>
+            </div>
+          </div>
+        `,
+      });
+    } catch (error) {
+      confirmation = "failed";
+      console.error("[email] customer confirmation failed:", error.code || "SMTP_ERROR");
+    }
   }
-  res.status(201).json({ success: true, message: "Inquiry received.", id: result.insertId, notification });
+  const message = confirmation === "sent"
+    ? "Inquiry received. A confirmation email has been sent to you."
+    : "Inquiry received. We could not send the confirmation email, but our team has your details.";
+  res.status(201).json({ success: true, message, id: result.insertId, notification, confirmation });
 });
 
 app.get("/api/blogs", async (_req, res) => res.json(await getBlogs(true)));
@@ -751,7 +814,16 @@ app.get("/sitemap.xml", async (_req, res) => {
     const blogs = await getBlogs(true);
     const today = new Date().toISOString().slice(0, 10);
     const toDay = (value) => parseDate(value)?.slice(0, 10) || today;
-    const urls = ROUTE_META.map((route) => ({ loc: canonicalFor(route.path), lastmod: today, changefreq: route.changefreq, priority: route.priority }));
+    const newestBlogDate = blogs.reduce((latest, blog) => {
+      const date = toDay(blog.updatedAt || blog.publishedAt || blog.createdAt);
+      return date > latest ? date : latest;
+    }, today);
+    const urls = ROUTE_META.map((route) => ({
+      loc: canonicalFor(route.path),
+      lastmod: route.path === "/blogs" ? newestBlogDate : today,
+      changefreq: route.changefreq,
+      priority: route.priority,
+    }));
     for (const blog of blogs) {
       if (String(blog.robotsMeta).toLowerCase().includes("noindex")) continue;
       urls.push({
@@ -761,7 +833,7 @@ app.get("/sitemap.xml", async (_req, res) => {
         priority: 0.7,
       });
     }
-    res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((item) => `  <url><loc>${escapeXml(item.loc)}</loc><lastmod>${item.lastmod}</lastmod><changefreq>${item.changefreq}</changefreq><priority>${Number(item.priority).toFixed(1)}</priority></url>`).join("\n")}\n</urlset>\n`);
+    res.set("Cache-Control", "no-store, max-age=0").type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((item) => `  <url><loc>${escapeXml(item.loc)}</loc><lastmod>${item.lastmod}</lastmod><changefreq>${item.changefreq}</changefreq><priority>${Number(item.priority).toFixed(1)}</priority></url>`).join("\n")}\n</urlset>\n`);
   } catch (error) {
     if (existsSync(sitemapPath)) return res.type("application/xml").sendFile(sitemapPath);
     throw error;
