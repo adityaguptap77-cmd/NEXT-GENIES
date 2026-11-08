@@ -39,7 +39,8 @@ const configuredSeoApi = seoCandidates.find((candidate) => {
   try { return !["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(new URL(candidate).hostname); }
   catch { return false; }
 });
-const API = (configuredSeoApi || DEFAULT_SEO_API).replace(/\/$/, "");
+const API_CANDIDATES = [...new Set([configuredSeoApi, DEFAULT_SEO_API].filter(Boolean).map((candidate) => candidate.replace(/\/$/, "")))];
+let API = API_CANDIDATES[0];
 const SITE_NAME = "NextGenies";
 const OG_IMAGE = `${SITE}/og-image.png`;
 
@@ -137,7 +138,18 @@ console.log(`[seo] prerendered ${ROUTE_META.length} static routes`);
 // ───────── blogs ─────────
 let blogs = [];
 try {
-  const list = await getJson(`${API}/api/blogs`);
+  let list;
+  let lastError;
+  for (const candidate of API_CANDIDATES) {
+    try {
+      list = await getJson(`${candidate}/api/blogs`);
+      API = candidate;
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!list) throw lastError || new Error("No SEO API endpoint is configured.");
   const slugs = (Array.isArray(list) ? list : []).filter((b) => /^[a-z0-9-]+$/.test(b.slug || ""));
   const queue = [...slugs];
   const details = [];
