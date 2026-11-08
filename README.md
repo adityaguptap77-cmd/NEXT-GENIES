@@ -330,7 +330,10 @@ npm run build
 The build creates `dist/`, route-specific prerendered HTML, `dist/robots.txt`,
 and `dist/sitemap.xml`. If published blog posts should be included in the
 build-time sitemap and prerendered pages, make the production API available
-at `SEO_API_URL` while running the build. The backend sitemap remains dynamic
+at `SEO_API_URL` while running the build. When no non-local SEO API is
+configured, the build uses the deployed backend API as its fallback, so a
+static frontend deployment still publishes blog URLs on the canonical
+`nextgenies.com/sitemap.xml` endpoint. The backend sitemap remains dynamic
 after deployment.
 
 Install backend dependencies as well:

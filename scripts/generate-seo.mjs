@@ -33,12 +33,13 @@ for (const file of [".env", ".env.production", ".env.local"]) {
 }
 
 const SITE = (process.env.VITE_SITE_URL || process.env.SITE_URL || "https://nextgenies.com").replace(/\/$/, "");
+const DEFAULT_SEO_API = "https://nextgenies-com-612029.hostingersite.com";
 const seoCandidates = [process.env.SEO_API_URL, process.env.VITE_API_URL].filter(Boolean);
 const configuredSeoApi = seoCandidates.find((candidate) => {
   try { return !["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(new URL(candidate).hostname); }
   catch { return false; }
 });
-const API = (configuredSeoApi || SITE).replace(/\/$/, "");
+const API = (configuredSeoApi || DEFAULT_SEO_API).replace(/\/$/, "");
 const SITE_NAME = "NextGenies";
 const OG_IMAGE = `${SITE}/og-image.png`;
 
@@ -86,12 +87,12 @@ function render({ headHtml, bodyHtml }) {
   return html;
 }
 
-function write(routePath, html) {
+function write(routePath, html, expectedCanonical = canonical(routePath)) {
   const target = routePath === "/" ? path.join(dist, "index.html") : path.join(dist, routePath.replace(/^\//, ""), "index.html");
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, html);
   const written = fs.readFileSync(target, "utf8");
-  if (!written.includes(`href="${canonical(routePath)}"`)) {
+  if (!written.includes(`href="${expectedCanonical}"`)) {
     throw new Error(`[seo] ${routePath} did not receive its route-specific canonical URL.`);
   }
 }
@@ -199,6 +200,7 @@ try {
         }),
         bodyHtml: fallback(`<article><h1>${esc(b.title)}</h1><p>${esc(b.description)}</p>${paragraphs}</article>`),
       }),
+      pageCanonical,
     );
   }
   console.log(`[seo] prerendered ${blogs.length} blog posts from ${API}`);
