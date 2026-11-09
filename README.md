@@ -427,12 +427,12 @@ There must be no `Location:` header. The XML should contain the same URLs as
 `https://nextgenies-com-612029.hostingersite.com/sitemap.xml`.
 
 If the response still shows the old build snapshot, `.htaccess` is not in the
-active document root or Apache/LiteSpeed rewrite rules are disabled. If the
-backend is temporarily unavailable, the proxy returns the last build-time
-`sitemap.xml` with `200` and `no-cache`; once the backend recovers, live
-database content is returned again. A `502` means the fallback file is missing
-or the required PHP HTTP extension is unavailable. Check the Hostinger error
-log in that case.
+active document root or Apache/LiteSpeed rewrite rules are disabled. The proxy
+never serves the build-time `sitemap.xml` as a fallback, because that could
+expose unpublished or deleted posts. If the backend is unavailable, the proxy
+returns `502` until the backend recovers; current database content is then
+returned automatically. Check the Hostinger error log for repeated `502`
+responses.
 
 After this one-time deployment, do not run `npm run build` for blog uploads.
 You still need a frontend build when changing React pages, styles, assets, or
