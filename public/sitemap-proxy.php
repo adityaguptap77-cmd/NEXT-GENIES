@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$backendSitemap = 'https://nextgenies-com-612029.hostingersite.com/sitemap.xml';
+$backendSitemap = 'https://nextgenies-com-653114.hostingersite.com/sitemap.xml';
 $body = false;
 $status = 502;
 

@@ -32,7 +32,7 @@ for (const file of [".env", ".env.production", ".env.local"]) {
 }
 
 const SITE = (process.env.VITE_SITE_URL || process.env.SITE_URL || "https://nextgenies.com").replace(/\/$/, "");
-const DEFAULT_SEO_API = "https://nextgenies-com-612029.hostingersite.com";
+const DEFAULT_SEO_API = "https://nextgenies-com-653114.hostingersite.com";
 const seoCandidates = [process.env.SEO_API_URL, process.env.VITE_API_URL].filter(Boolean);
 const configuredSeoApi = seoCandidates.find((candidate) => {
   try { return !["localhost", "127.0.0.1", "0.0.0.0", "::1"].includes(new URL(candidate).hostname); }

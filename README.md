@@ -376,7 +376,7 @@ Use this section only when `nextgenies.com` remains in Hostinger's static
 **Publish** mode and the backend stays at:
 
 ```text
-https://nextgenies-com-612029.hostingersite.com
+https://nextgenies-com-653114.hostingersite.com
 ```
 
 The repository includes a PHP proxy so the public URL stays:
@@ -424,7 +424,7 @@ cache-control: no-store, max-age=0
 ```
 
 There must be no `Location:` header. The XML should contain the same URLs as
-`https://nextgenies-com-612029.hostingersite.com/sitemap.xml`.
+`https://nextgenies-com-653114.hostingersite.com/sitemap.xml`.
 
 If the response still shows the old build snapshot, `.htaccess` is not in the
 active document root or Apache/LiteSpeed rewrite rules are disabled. The proxy
