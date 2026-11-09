@@ -2,6 +2,10 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://nextgenies-com-612029.hostingersite.com/sitemap.xml"
+    },
+    {
       "source": "/api/contacts",
       "destination": "/api/contacts.js"
     },

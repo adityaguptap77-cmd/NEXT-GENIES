@@ -376,15 +376,19 @@ domain from **Websites → Publish** at the same time: that serves the static
 application is running, `/sitemap.xml` is handled by `app.get("/sitemap.xml")`,
 which queries the `blogs` table on every request, includes only published
 indexable posts, and automatically reflects edits, publications, unpublishing,
-and deletions.
+and deletions. The public domain must be mapped to this Node.js application so
+the route is served directly on the canonical host; do not use an external
+redirect from `/sitemap.xml`.
 
 For this same-origin setup, set `VITE_API_URL` to an empty value in the
 production environment, keep `VITE_SITE_URL=https://nextgenies.com`, rebuild
 the frontend, restart the Node.js application, and verify that
 `https://nextgenies.com/api/health` returns `"database":"mysql"`. If the
 frontend remains in static Publish mode on the main domain, the exact public
-sitemap URL cannot be dynamic without a Hostinger reverse-proxy rule; a
-separate API hostname alone will not change `nextgenies.com/sitemap.xml`.
+sitemap URL cannot be dynamic without a Hostinger reverse-proxy rule. Map the
+domain to the Node.js application instead; then the backend route serves the
+same-origin sitemap and later blog uploads and edits do not require another
+frontend build.
 Do not upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or local
 database files unless you intentionally migrate their data.
 
