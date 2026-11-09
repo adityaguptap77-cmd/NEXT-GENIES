@@ -428,8 +428,11 @@ There must be no `Location:` header. The XML should contain the same URLs as
 
 If the response still shows the old build snapshot, `.htaccess` is not in the
 active document root or Apache/LiteSpeed rewrite rules are disabled. If the
-response is `502`, PHP cannot reach the backend URL or the required PHP HTTP
-extension is unavailable. In either case, check the Hostinger error log.
+backend is temporarily unavailable, the proxy returns the last build-time
+`sitemap.xml` with `200` and `no-cache`; once the backend recovers, live
+database content is returned again. A `502` means the fallback file is missing
+or the required PHP HTTP extension is unavailable. Check the Hostinger error
+log in that case.
 
 After this one-time deployment, do not run `npm run build` for blog uploads.
 You still need a frontend build when changing React pages, styles, assets, or
