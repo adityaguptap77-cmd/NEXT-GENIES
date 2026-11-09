@@ -7,7 +7,8 @@ function CookiePolicy() {
       <SEO
         title="Cookie Policy"
         description="Understand how NextGenies uses essential functional cookies and how you can manage or disable cookie preferences in your browser."
-        canonicalPath="/cookie-policy"
+        path="/cookie-policy"
+        robots="noindex, follow"
       />
 
       <main className="legal-page">

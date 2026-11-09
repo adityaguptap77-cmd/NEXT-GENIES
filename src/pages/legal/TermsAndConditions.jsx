@@ -7,7 +7,8 @@ function TermsAndConditions() {
       <SEO
         title="Terms & Conditions"
         description="Review the terms of service and client engagement standards governing digital marketing, content, website design, and branding at NextGenies."
-        canonicalPath="/terms-and-conditions"
+        path="/terms-and-conditions"
+        robots="noindex, follow"
       />
 
       <main className="legal-page">

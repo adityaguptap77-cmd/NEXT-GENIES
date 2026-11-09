@@ -54,6 +54,8 @@ export const ROUTE_META = [
     priority: 0.3,
     changefreq: "yearly",
     heading: "Privacy Policy",
+    robots: "noindex, follow",
+    includeInSitemap: false,
   },
   {
     path: "/terms-and-conditions",
@@ -62,6 +64,8 @@ export const ROUTE_META = [
     priority: 0.3,
     changefreq: "yearly",
     heading: "Terms & Conditions",
+    robots: "noindex, follow",
+    includeInSitemap: false,
   },
   {
     path: "/cookie-policy",
@@ -70,6 +74,8 @@ export const ROUTE_META = [
     priority: 0.3,
     changefreq: "yearly",
     heading: "Cookie Policy",
+    robots: "noindex, follow",
+    includeInSitemap: false,
   },
   {
     path: "/disclaimer",
@@ -78,6 +84,8 @@ export const ROUTE_META = [
     priority: 0.3,
     changefreq: "yearly",
     heading: "Disclaimer",
+    robots: "noindex, follow",
+    includeInSitemap: false,
   },
 ];
 

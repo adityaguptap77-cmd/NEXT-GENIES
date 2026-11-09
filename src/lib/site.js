@@ -1,7 +1,8 @@
 // Central place for site-wide constants.
 export const SITE_NAME = "NextGenies";
 export const SITE_URL = (import.meta.env.VITE_SITE_URL || "https://nextgenies.com").replace(/\/$/, "");
-const configuredApiUrl = (import.meta.env.VITE_API_URL || "").trim().replace(/\/$/, "");
+const DEFAULT_API_URL = "https://nextgenies-com-612029.hostingersite.com";
+const configuredApiUrl = (import.meta.env.VITE_API_URL || DEFAULT_API_URL).trim().replace(/\/$/, "");
 const isLocalApiUrl = (() => {
   if (!configuredApiUrl) return false;
   try {

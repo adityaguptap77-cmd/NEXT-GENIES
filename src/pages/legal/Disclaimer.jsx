@@ -7,7 +7,8 @@ function Disclaimer() {
       <SEO
         title="Disclaimer"
         description="Important information regarding NextGenies digital marketing results, past performance metrics, concept work illustrations, and external links."
-        canonicalPath="/disclaimer"
+        path="/disclaimer"
+        robots="noindex, follow"
       />
 
       <main className="legal-page">

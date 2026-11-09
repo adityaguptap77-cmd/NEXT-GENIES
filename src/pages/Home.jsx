@@ -272,9 +272,11 @@ export default function Home() {
               </div>
               <h1 className="hero-title">
                 <span className="line l1">We help businesses</span>
+                {" "}
                 <span className="line l2">
                   grow online with <RotatingWord />
                 </span>
+                {" "}
                 <span className="line l3">work that drives Results.</span>
               </h1>
               <p className="lead hero-lead">

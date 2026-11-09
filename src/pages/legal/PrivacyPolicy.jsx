@@ -7,7 +7,8 @@ function PrivacyPolicy() {
       <SEO
         title="Privacy Policy"
         description="Read the NextGenies Privacy Policy to learn how we collect, protect, and handle your contact information with complete transparency."
-        canonicalPath="/privacy-policy"
+        path="/privacy-policy"
+        robots="noindex, follow"
       />
 
       <main className="legal-page">

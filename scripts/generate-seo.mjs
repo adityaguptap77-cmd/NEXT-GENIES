@@ -128,7 +128,7 @@ for (const r of ROUTE_META) {
   write(
     r.path,
     render({
-      headHtml: head({ title: r.title, description: r.description, path: r.path, ld }),
+      headHtml: head({ title: r.title, description: r.description, path: r.path, robots: r.robots || "index, follow", ld }),
       bodyHtml: fallback(`<h1>${esc(r.heading)}</h1><p>${esc(r.description)}</p>`),
     }),
   );
@@ -228,7 +228,7 @@ const day = (v) => {
 };
 const newest = blogs.map((b) => day(b.publishedAt || b.createdAt)).sort().pop();
 const urls = [
-  ...ROUTE_META.map((r) => ({
+  ...ROUTE_META.filter((r) => r.includeInSitemap !== false).map((r) => ({
     loc: canonical(r.path),
     lastmod: r.path === "/blogs" && newest ? newest : today,
     changefreq: r.changefreq,

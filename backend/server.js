@@ -33,10 +33,6 @@ const ROUTE_META = [
   { path: "/about", changefreq: "monthly", priority: 0.7 },
   { path: "/contact", changefreq: "monthly", priority: 0.8 },
   { path: "/blogs", changefreq: "weekly", priority: 0.8 },
-  { path: "/privacy-policy", changefreq: "yearly", priority: 0.3 },
-  { path: "/terms-and-conditions", changefreq: "yearly", priority: 0.3 },
-  { path: "/cookie-policy", changefreq: "yearly", priority: 0.3 },
-  { path: "/disclaimer", changefreq: "yearly", priority: 0.3 },
 ];
 const JWT_ISSUER = "nextgenies.com";
 const JWT_AUDIENCE = "nextgenies-admin";
