@@ -9,9 +9,6 @@ Options -Indexes
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  # Blog publishing is database-backed; always use the live backend sitemap
-  # instead of the build-time dist/sitemap.xml snapshot.
-  RewriteRule ^sitemap\.xml$ https://nextgenies-com-612029.hostingersite.com/sitemap.xml [R=307,L,NE]
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_URI} !^/api [NC]
   RewriteCond %{REQUEST_URI} !^/uploads [NC]

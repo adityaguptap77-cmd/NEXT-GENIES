@@ -330,11 +330,9 @@ npm run build
 The build creates `dist/`, route-specific prerendered HTML, `dist/robots.txt`,
 and `dist/sitemap.xml`. If published blog posts should be included in the
 build-time sitemap and prerendered pages, make the production API available
-at `SEO_API_URL` while running the build. When no non-local SEO API is
-configured, the build uses the deployed backend API as its fallback, so a
-static frontend deployment still publishes blog URLs on the canonical
-`nextgenies.com/sitemap.xml` endpoint. The backend sitemap remains dynamic
-after deployment.
+at `SEO_API_URL` while running the build. The generated `dist/sitemap.xml` is
+served directly by the frontend deployment at the canonical
+`https://nextgenies.com/sitemap.xml` URL and must not redirect to the API host.
 
 Install backend dependencies as well:
 
@@ -366,25 +364,18 @@ the API can still start but website routes return 503 until a build is deployed.
 Hostinger's static **Publish** mode serves `dist/` only and does not start
 Express; choose a Node.js application for the combined frontend/API setup, or
 keep the frontend static and configure it to call a separately running backend.
-To make `https://nextgenies.com/sitemap.xml` dynamic, the `nextgenies.com`
-domain itself must be assigned to this Node.js application. In hPanel, open the
-Node.js application, add `nextgenies.com` (and `www.nextgenies.com` if it is
-used) under its domain or application mapping, and make sure DNS for both
-hostnames points to the same Hostinger account/application. Do not serve the
-domain from **Websites → Publish** at the same time: that serves the static
-`dist/sitemap.xml` before Express can handle the request. After the Node.js
-application is running, `/sitemap.xml` is handled by `app.get("/sitemap.xml")`,
-which queries the `blogs` table on every request, includes only published
-indexable posts, and automatically reflects edits, publications, unpublishing,
-and deletions.
+If the frontend and backend remain separate, serve the built frontend `dist/`
+from the `nextgenies.com` domain. The frontend's `dist/sitemap.xml` must remain
+the public sitemap; do not add a rewrite or redirect from `/sitemap.xml` to the
+backend hostname. If the domain is assigned to the Node.js application
+instead, its same-origin `/sitemap.xml` route may be used, but it must still
+return `200` at `https://nextgenies.com/sitemap.xml`.
 
-For this same-origin setup, set `VITE_API_URL` to an empty value in the
-production environment, keep `VITE_SITE_URL=https://nextgenies.com`, rebuild
-the frontend, restart the Node.js application, and verify that
-`https://nextgenies.com/api/health` returns `"database":"mysql"`. If the
-frontend remains in static Publish mode on the main domain, the exact public
-sitemap URL cannot be dynamic without a Hostinger reverse-proxy rule; a
-separate API hostname alone will not change `nextgenies.com/sitemap.xml`.
+For a separate frontend/API setup, keep `VITE_API_URL` pointed at the API
+hostname, keep `VITE_SITE_URL=https://nextgenies.com`, rebuild the frontend,
+and verify that `https://nextgenies.com/sitemap.xml` returns `200` XML without
+a `Location` header. The API hostname must not be used as the public sitemap
+URL.
 Do not upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or local
 database files unless you intentionally migrate their data.
 

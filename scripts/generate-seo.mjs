@@ -6,11 +6,10 @@
  *     fallback) into dist/<route>/index.html — so crawlers and link-preview bots that don't run JavaScript still
  *     see the correct metadata. The React app takes over as soon as the JS loads.
  *  2. Fetches published blogs from the existing API (GET /api/blogs, GET /api/blogs/:slug) and prerenders each one.
- *  3. Writes a build-time fallback sitemap.xml (static routes + every published blog) and robots.txt into dist/.
+ *  3. Writes the canonical sitemap.xml (static routes + every published blog) and robots.txt into dist/.
  *
- * Production deployments serve dynamic sitemap.xml and robots.txt from the backend, so publishing
- * through the admin page does not require a frontend rebuild. The generated files remain a fallback
- * for static hosting and local previews.
+ * The frontend deployment serves dist/sitemap.xml at https://nextgenies.com/sitemap.xml.
+ * It must not redirect that URL to the separate backend hostname.
  * Env: VITE_SITE_URL, SEO_API_URL (falls back to VITE_API_URL, then the site URL).
  * It never fails the build: if the API is unreachable you still get the static routes.
  */
