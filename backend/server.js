@@ -904,6 +904,27 @@ app.get("/blogs/:slug", async (req, res, next) => {
 if (frontendReady) app.use(express.static(distPath, { fallthrough: true }));
 app.get(/^(?!\/api(?:\/|$)).*/, (_req, res, next) => {
   if (!frontendReady) return res.status(503).type("text/plain").send("The website frontend is not built. Run npm run build before starting the server.");
+  const pathname = new URL(_req.originalUrl, SITE_URL).pathname.replace(/\/+$/, "") || "/";
+  const isAdmin = pathname === "/admin";
+  const isKnownSpaRoute = ROUTE_META.some((route) => route.path === pathname) || isAdmin;
+  if (!isKnownSpaRoute) {
+    const canonical = canonicalFor(pathname);
+    return res.status(404).set("X-Robots-Tag", "noindex, follow").type("html").send(renderCrawlerPage({
+      title: "Page not found",
+      description: "The page you are looking for does not exist or has been moved.",
+      canonical,
+      robots: "noindex, follow",
+      jsonLd: {},
+      body: `<main style="max-width:760px;margin:0 auto;padding:96px 20px;font-family:system-ui,sans-serif"><h1>Page not found</h1><p>The page you are looking for does not exist or has been moved.</p><a href="/">Return home</a></main>`,
+    }));
+  }
+  if (isAdmin) res.set("X-Robots-Tag", "noindex, nofollow");
+  if (isAdmin) {
+    return res.type("html").send(readFileSync(indexPath, "utf8").replace(
+      '<meta name="robots" content="index, follow" />',
+      '<meta name="robots" content="noindex, nofollow" />',
+    ));
+  }
   res.sendFile(indexPath, (error) => { if (error) next(error); });
 });
 
