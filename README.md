@@ -330,9 +330,9 @@ npm run build
 The build creates `dist/`, route-specific prerendered HTML, `dist/robots.txt`,
 and `dist/sitemap.xml`. If published blog posts should be included in the
 build-time sitemap and prerendered pages, make the production API available
-at `SEO_API_URL` while running the build. The generated `dist/sitemap.xml` is
-served directly by the frontend deployment at the canonical
-`https://nextgenies.com/sitemap.xml` URL and must not redirect to the API host.
+at `SEO_API_URL` while running the build. This build-time sitemap is only a
+fallback; the production PHP proxy described below is what keeps the public
+sitemap current after blog changes.
 
 Install backend dependencies as well:
 
@@ -362,26 +362,80 @@ Build `dist/` during deployment, before starting the Node.js application. The
 server does not run npm or Vite at startup. If `dist/index.html` is missing,
 the API can still start but website routes return 503 until a build is deployed.
 Hostinger's static **Publish** mode serves `dist/` only and does not start
-Express; choose a Node.js application for the combined frontend/API setup, or
-keep the frontend static and configure it to call a separately running backend.
-If the frontend and backend remain separate, serve the built frontend `dist/`
-from the `nextgenies.com` domain. The frontend's `dist/sitemap.xml` must remain
-the public sitemap; do not add a rewrite or redirect from `/sitemap.xml` to the
-backend hostname. If the domain is assigned to the Node.js application
-instead, its same-origin `/sitemap.xml` route may be used, but it must still
-return `200` at `https://nextgenies.com/sitemap.xml`.
-
-For a separate frontend/API setup, keep `VITE_API_URL` pointed at the API
-hostname, keep `VITE_SITE_URL=https://nextgenies.com`, rebuild the frontend,
-and verify that `https://nextgenies.com/sitemap.xml` returns `200` XML without
-a `Location` header. The API hostname must not be used as the public sitemap
-URL.
+Express. Choose a Node.js application for the combined frontend/API setup
+when possible; its `/sitemap.xml` route is already dynamic and requires no
+proxy.
 Do not upload `node_modules/`, `.env`, `backend/.env`, `.git/`, or local
 database files unless you intentionally migrate their data.
 
 Restart the Node.js application after setting environment variables.
 
-### 5. Configure the domain and HTTPS
+### 5. Static frontend: enable the dynamic sitemap proxy
+
+Use this section only when `nextgenies.com` remains in Hostinger's static
+**Publish** mode and the backend stays at:
+
+```text
+https://nextgenies-com-612029.hostingersite.com
+```
+
+The repository includes a PHP proxy so the public URL stays:
+
+```text
+https://nextgenies.com/sitemap.xml
+```
+
+The proxy fetches the backend sitemap on every request and returns the XML
+directly. It does not redirect the browser or Google to the backend hostname.
+Therefore, publishing, editing, unpublishing, or deleting a blog is reflected
+without running `npm run build`.
+
+#### One-time deployment
+
+1. Run `npm run build` once to create the production `dist/` folder.
+2. Open Hostinger's static site document root, usually `public_html/`.
+3. Upload `dist/sitemap-proxy.php` to `public_html/sitemap-proxy.php`.
+4. Upload `dist/.htaccess` to `public_html/.htaccess`, replacing the existing
+   file if it is the site's current rewrite file.
+5. Confirm that `sitemap-proxy.php` and `.htaccess` are in the same directory
+   as `sitemap.xml`.
+6. Do not delete the generated `sitemap.xml`; the rewrite runs before that
+   fallback file is served.
+
+The proxy requires PHP with either the cURL extension or URL fopen enabled.
+Hostinger normally provides both. No PHP package or local PHP installation is
+required on the development computer.
+
+#### Verify the proxy
+
+Run:
+
+```bash
+curl -I https://nextgenies.com/sitemap.xml
+curl https://nextgenies.com/sitemap.xml
+```
+
+Expected response:
+
+```text
+HTTP/2 200
+content-type: application/xml
+cache-control: no-store, max-age=0
+```
+
+There must be no `Location:` header. The XML should contain the same URLs as
+`https://nextgenies-com-612029.hostingersite.com/sitemap.xml`.
+
+If the response still shows the old build snapshot, `.htaccess` is not in the
+active document root or Apache/LiteSpeed rewrite rules are disabled. If the
+response is `502`, PHP cannot reach the backend URL or the required PHP HTTP
+extension is unavailable. In either case, check the Hostinger error log.
+
+After this one-time deployment, do not run `npm run build` for blog uploads.
+You still need a frontend build when changing React pages, styles, assets, or
+SEO route metadata.
+
+### 6. Configure the domain and HTTPS
 
 Point `nextgenies.com` and, if required, `www.nextgenies.com` to the
 Hostinger application. Enable SSL and force HTTPS. The canonical site URL
@@ -402,7 +456,7 @@ backend share one origin, leave `VITE_API_URL` empty. After signing in to
 `/admin`, open the **System** tab to check MySQL, SMTP, CORS origins, and build
 readiness; the SMTP check verifies connectivity only and does not send mail.
 
-### 6. Verify the live deployment
+### 7. Verify the live deployment
 
 Check these URLs after the application starts:
 

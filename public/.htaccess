@@ -9,6 +9,9 @@ Options -Indexes
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  # Keep the canonical sitemap URL while proxying its contents from the
+  # database-backed backend. This avoids serving the build-time XML snapshot.
+  RewriteRule ^sitemap\.xml$ sitemap-proxy.php [L]
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_URI} !^/api [NC]
   RewriteCond %{REQUEST_URI} !^/uploads [NC]
